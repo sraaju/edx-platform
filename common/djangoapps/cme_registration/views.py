@@ -1,0 +1,505 @@
+import json
+
+from django_future.csrf import ensure_csrf_cookie
+from django.conf import settings
+from django.core.validators import validate_email, validate_slug, ValidationError
+from django.contrib.auth.models import User
+from django.http import HttpResponse
+from django.contrib.auth import authenticate, login
+
+from student.models import (Registration, UserProfile)
+from student.views import try_change_enrollment
+
+from mitxmako.shortcuts import render_to_response, render_to_string
+
+from statsd import statsd
+
+@ensure_csrf_cookie
+def register_user(request, extra_context={}):
+    """
+    This view will display the non-modal registration form
+    """
+    if request.user.is_authenticated():
+        return redirect(reverse('dashboard'))
+
+
+    SPECIALTY_CHOICES = {}
+    SUB_SPECIALTY_CHOICES = {}
+    
+    PATIENT_POPULATION_CHOICES = (('Adult', 'Adult'),
+                                  ('Pediatric', 'Pediatric'),
+                                  ('Both (Adult/Pediatric)', 'Both (Adult/Pediatric'))
+    SPECIALTY_CHOICES['Adult'] = (('Addiction Medicine', 'Addiction Medicine'),
+                                  ('Allergy', 'Allergy'),
+                                  ('Anesthesiology', 'Anesthesiology'),
+                                  ('Cardiology','Cardiology'),
+                                  ('Complimentary Medicine', 'Complimentary Medicine'),
+                                  ('Critical Care Medicine & ICU', 'Critical Care Medicine & ICU'),
+                                  ('Dentistry','Dentistry'),
+                                  ('Dermatology', 'Dermatology'),
+                                  ('Emergency Medicine', 'Emergency Medicine'),
+                                  ('Endocrinology', 'Endocrinology'),
+                                  ('Family Practice','Family Practice'),
+                                  ('Gastroenterology & Hepatology', 'Gastroenterology & Hepatology'),
+                                  ('General Practice', 'General Practice'),
+                                  ('Gerontology','Gerontology'),
+                                  ('Head & Neck Surgery', 'Head & Neck Surgery'),
+                                  ('Health Education', 'Health Education'),
+                                  ('Hematology', 'Hematology'),
+                                  ('Immunology & Rheumatology','Immunology & Rheumatology'),
+                                  ('Infectious Disease', 'Infectious Disease'),
+                                  ('Internal Medicine', 'Internal Medicine'),
+                                  ('Nephrology', 'Nephrology'),
+                                  ('Neurology', 'Neurology'),
+                                  ('Neurosurgery','Neurosurgery'),
+                                  ('Nutrition', 'Nutrition'),
+                                  ('Obstetrics & Gynecology', 'Obstetrics & Gynecology'),
+                                  ('Oncology', 'Oncology'),
+                                  ('Ophthalmology', 'Ophthalmology'),
+                                  ('Orthopaedic Surgery','Orthopaedic Surgery'),
+                                  ('Palliative Care', 'Palliative Care'),
+                                  ('Pathology', 'Pathology'),
+                                  ('Pharmacology', 'Pharmacology'),
+                                  ('Physical Medicine and Rehabilitation','Physical Medicine and Rehabilitation'),
+                                  ('Psychiatry', 'Psychiatry'),
+                                  ('Psychology', 'Psychology'),
+                                  ('Public Health', 'Public Health'),
+                                  ('Pulmonology', 'Pulmonology'),
+                                  ('Radiology', 'Radiology'),
+                                  ('Radiation Oncology','Radiation Oncology'),
+                                  ('Surgery', 'Surgery'),
+                                  ('Transplant', 'Transplant'),
+                                  ('Urology','Urology'))
+
+    SPECIALTY_CHOICES['Pediatric'] = (('Addiction Medicine', 'Addiction Medicine'),
+                                      ('Adolescent Medicine', 'Adolescent Medicine'),
+                                      ('Allergy', 'Allergy'),
+                                      ('Anesthesiology', 'Anesthesiology'),
+                                      ('Cardiology', 'Cardiology'),
+                                      ('Complimentary Medicine', 'Complimentary Medicine'),
+                                      ('Critical Care Medicine/ICU', 'Critical Care Medicine/ICU'),
+                                      ('Dentistry', 'Dentistry'),
+                                      ('Dermatology', 'Dermatology'),
+                                      ('Emergency Medicine', 'Emergency Medicine'),
+                                      ('Endocrinology', 'Endocrinology'),
+                                      ('Family Practice', 'Family Practice'),
+                                      ('Gastroenterology & Hepatology', 'Gastroenterology & Hepatology'),
+                                      ('General Practice', 'General Practice'),
+                                      ('Head & Neck Surgery', 'Head & Neck Surgery'),
+                                      ('Health Education', 'Health Education'),
+                                      ('Hematology', 'Hematology'),
+                                      ('Immunology & Rheumatology', 'Immunology & Rheumatology'),
+                                      ('Infectious Disease', 'Infectious Disease'),
+                                      ('Internal Medicine', 'Internal Medicine'),
+                                      ('Neonatology', 'Neonatology'),
+                                      ('Nephrology', 'Nephrology'),
+                                      ('Neurology', 'Neurology'),
+                                      ('Neurosurgery', 'Neurosurgery'),
+                                      ('Nutrition', 'Nutrition'),
+                                      ('Obstetrics & Gynecology', 'Obstetrics & Gynecology'),
+                                      ('Oncology', 'Oncology'),
+                                      ('Ophthalmology', 'Ophthalmology'),
+                                      ('Orthopaedic Surgery', 'Orthopaedic Surgery'),
+                                      ('Pathology', 'Pathology'),
+                                      ('Pediatrics', 'Pediatrics'),
+                                      ('Pharmacology', 'Pharmacology'),
+                                      ('Physical Medicine and Rehabilitation', 'Physical Medicine and Rehabilitation'),
+                                      ('Psychiatry', 'Psychiatry'),
+                                      ('Psychology', 'Psychology'),
+                                      ('Public Health', 'Public Health'),
+                                      ('Pulmonology', 'Pulmonology'),
+                                      ('Radiology', 'Radiology'),
+                                      ('Radiation Oncology', 'Radiation Oncology'),
+                                      ('Surgery', 'Surgery'),
+                                      ('Transplant', 'Transplant'),
+                                      ('Urology', 'Urology'),
+                                      ('Other (free form)', 'Other (free form)'))
+
+    SPECIALTY_CHOICES['Both (Adult/Pediatric)'] = (('Addiction Medicine', 'Addiction Medicine'),
+                                                   ('Adolescent Medicine', 'Adolescent Medicine'),
+                                                   ('Allergy', 'Allergy'),
+                                                   ('Anesthesiology', 'Anesthesiology'),
+                                                   ('Cardiology', 'Cardiology'),
+                                                   ('Complimentary Medicine', 'Complimentary Medicine'),
+                                                   ('Critical Care Medicine & ICU', 'Critical Care Medicine & ICU'),
+                                                   ('Dentistry', 'Dentistry'),
+                                                   ('Dermatology', 'Dermatology'),
+                                                   ('Emergency Medicine', 'Emergency Medicine'),
+                                                   ('Endocrinology', 'Endocrinology'),
+                                                   ('Family Practice', 'Family Practice'),
+                                                   ('Gastroenterology & Hepatology', 'Gastroenterology & Hepatology'),
+                                                   ('General Practice', 'General Practice'),
+                                                   ('Gerontology', 'Gerontology'),
+                                                   ('Head & Neck Surgery', 'Head & Neck Surgery'),
+                                                   ('Health Education', 'Health Education'),
+                                                   ('Hematology', 'Hematology'),
+                                                   ('Immunology & Rheumatology', 'Immunology & Rheumatology'),
+                                                   ('Infectious Disease', 'Infectious Disease'),
+                                                   ('Internal Medicine', 'Internal Medicine'),
+                                                   ('Neonatology', 'Neonatology'),
+                                                   ('Nephrology', 'Nephrology'),
+                                                   ('Neurology', 'Neurology'),
+                                                   ('Neurosurgery', 'Neurosurgery'),
+                                                   ('Nutrition', 'Nutrition'),
+                                                   ('Obstetrics & Gynecology', 'Obstetrics & Gynecology'),
+                                                   ('Oncology', 'Oncology'),
+                                                   ('Ophthalmology', 'Ophthalmology'),
+                                                   ('Orthopaedic Surgery', 'Orthopaedic Surgery'),
+                                                   ('Palliative Care', 'Palliative Care'),
+                                                   ('Pathology', 'Pathology'),
+                                                   ('Pediatrics', 'Pediatrics'),
+                                                   ('Pharmacology', 'Pharmacology'),
+                                                   ('Physical Medicine and Rehabilitation', 'Physical Medicine and Rehabilitation'),
+                                                   ('Psychiatry', 'Psychiatry'),
+                                                   ('Psychology', 'Psychology'),
+                                                   ('Public Health', 'Public Health'),
+                                                   ('Pulmonology', 'Pulmonology'),
+                                                   ('Radiology', 'Radiology'),
+                                                   ('Radiation Oncology', 'Radiation Oncology'),
+                                                   ('Surgery', 'Surgery'),
+                                                   ('Transplant', 'Transplant'),
+                                                   ('Urology', 'Urology'),
+                                                   ('Other (free form)', 'Other (free form)'))
+
+    SUB_SPECIALTY_CHOICES['Cardiology'] = (('Cardiopulmonary', 'Cardiopulmonary'),
+                                           ('Cardiothoracic', 'Cardiothoracic'),
+                                           ('Cardiovascular Disease', 'Cardiovascular Disease'),
+                                           ('Cath Angio/Lab', 'Cath Angio/Lab'),
+                                           ('Electrophysiology', 'Electrophysiology'),
+                                           ('Interventional Cardiology', 'Interventional Cardiology'),
+                                           ('Surgery', 'Surgery'),
+                                           ('Vascular', 'Vascular'),
+                                           ('Other (free form)', 'Other (free form)'))
+                                           
+    SUB_SPECIALTY_CHOICES['Internal Medicine'] = (('Cardiology', 'Cardiology'),
+                                                  ('Dermatology', 'Dermatology'),
+                                                  ('Endocrinology, Gerontology & Metabolism', 'Endocrinology, Gerontology & Metabolism'),
+                                                  ('Gastroenterology & Hepatology', 'Gastroenterology & Hepatology'),
+                                                  ('Hematology', 'Hematology', 'Hematology', 'Hematology'),
+                                                  ('Immunology & Rheumatology','Immunology & Rheumatology'),
+                                                  ('Infectious Disease', 'Infectious Disease'),
+                                                  ('Nephrology', 'Nephrology'),
+                                                  ('Preventative Medicine', 'Preventative Medicine'),
+                                                  ('Pulmonary', 'Pulmonary'),
+                                                  ('Other (free form)', 'Other (free form)'))
+                                                  
+    SUB_SPECIALTY_CHOICES['Obstetrics & Gynecology'] = (('Gynecology', 'Gynecology'),
+                                                        ('Obstetrics', 'Obstetrics'),
+                                                        ('Maternal & Fetal Medicine', 'Maternal & Fetal Medicine'),
+                                                        ('Women\'s Health', 'Women\'s Health'),
+                                                        ('Other (free form)', 'Other (free form)'))
+                                                        
+    SUB_SPECIALTY_CHOICES['Oncology'] = (('Breast', 'Breast'),
+                                         ('Gastroenterology', 'Gastroenterology'),
+                                         ('Gynecology', 'Gynecology'),
+                                         ('Hematology', 'Hematology'),
+                                         ('Medical', 'Medical'),
+                                         ('Radiation', 'Radiation'),
+                                         ('Surgical', 'Surgical'),
+                                         ('Urology', 'Urology'),
+                                         ('Other (free form)', 'Other (free form)'))
+    
+    SUB_SPECIALTY_CHOICES['Palliative Care'] = (('Hospice', 'Hospice'),
+                                                ('Other (free form)', 'Other (free form)'))
+    
+    SUB_SPECIALTY_CHOICES['Pediatrics'] = (('Adolescent Medicine', 'Adolescent Medicine'),
+                                           ('Allergy', 'Allergy'),
+                                           ('Anesthesiology', 'Anesthesiology'),
+                                           ('Cardiac Surgery', 'Cardiac Surgery'),
+                                           ('Cardiology', 'Cardiology'),
+                                           ('Critical Care', 'Critical Care'),
+                                           ('Dermatology', 'Dermatology'),
+                                           ('Emergency', 'Emergency'),
+                                           ('Endocrinology', 'Endocrinology'),
+                                           ('Family Practice', 'Family Practice'),
+                                           ('Gastroenterology', 'Gastroenterology'),
+                                           ('Hematology & Oncology', 'Hematology & Oncology'),
+                                           ('Immunology & Rheumatology', 'Immunology & Rheumatology'),
+                                           ('Internal Medicine', 'Internal Medicine'),
+                                           ('Infectious Disease', 'Infectious Disease'),
+                                           ('Neonatology', 'Neonatology'),
+                                           ('Nephrology', 'Nephrology'),
+                                           ('Neurology', 'Neurology'),
+                                           ('Obstetrics & Gynecology', 'Obstetrics & Gynecology'),
+                                           ('Otolaryngology/ Head & Neck', 'Otolaryngology/ Head & Neck'),
+                                           ('Oncology', 'Oncology'),
+                                           ('Ophthalmology', 'Ophthalmology'),
+                                           ('Orthopaedic Surgery', 'Orthopaedic Surgery'),
+                                           ('Osteopathy', 'Osteopathy'),
+                                           ('Pathology', 'Pathology'),
+                                           ('Pediatric Intensive Care', 'Pediatric Intensive Care'),
+                                           ('Psychiatry', 'Psychiatry'),
+                                           ('Psychology', 'Psychology'),
+                                           ('Pulmonary', 'Pulmonary'),
+                                           ('Radiology', 'Radiology'),
+                                           ('Surgery', 'Surgery'),
+                                           ('Urology', 'Urology'),
+                                           ('Other (free form)', 'Other (free form)'))
+
+    SUB_SPECIALTY_CHOICES['Pulmonology'] = (('Critical Care', 'Critical Care'),
+                                            ('Respiratory', 'Respiratory'),
+                                            ('Other (free form)', 'Other (free form)'))
+    
+    SUB_SPECIALTY_CHOICES['Surgery'] = (('Bariatric Surgery', 'Bariatric Surgery'),
+                                        ('Cardiac Surgery', 'Cardiac Surgery'),
+                                        ('Cardiothoracic Surgery', 'Cardiothoracic Surgery'),
+                                        ('Colon & Rectal Surgery', 'Colon & Rectal Surgery'),
+                                        ('Emergency Medicine', 'Emergency Medicine'),
+                                        ('Gastrointestinal Surgery', 'Gastrointestinal Surgery'),
+                                        ('Neurosurgery', 'Neurosurgery'),
+                                        ('Oral & Maxillofacial Surgery', 'Oral & Maxillofacial Surgery'),
+                                        ('Orthopaedic Surgery', 'Orthopaedic Surgery'),
+                                        ('Plastic & Reconstructive Surgery', 'Plastic & Reconstructive Surgery'),
+                                        ('Surgical Critical Care', 'Surgical Critical Care'),
+                                        ('Surgical Oncology', 'Surgical Oncology'),
+                                        ('Thoracic Surgery', 'Thoracic Surgery'),
+                                        ('Trauma Surgery', 'Trauma Surgery'),
+                                        ('Upper Extremity/ Hand Surgery', 'Upper Extremity/ Hand Surgery'),
+                                        ('Vascular Surgery', 'Vascular Surgery'),
+                                        ('Other (free form)', 'Other (free form)'))
+    
+    SUB_SPECIALTY_CHOICES['Transplant'] = (('Solid Organ', 'Solid Organ'),
+                                           ('Blood and Bone Marrow', 'Blood and Bone Marrow'),
+                                           ('Other (free form)', 'Other (free form)'))
+
+
+    context = {
+        'course_id': request.GET.get('course_id'),
+        'enrollment_action': request.GET.get('enrollment_action'),
+        'patient_population_choices': PATIENT_POPULATION_CHOICES,
+        'speciality_choices': SPECIALTY_CHOICES,
+        'sub_specialty_choices': SUB_SPECIALTY_CHOICES
+    }
+    context.update(extra_context)
+
+    return render_to_response('cme_register.html', context)
+
+@ensure_csrf_cookie
+def cme_create_account(request, post_override=None):
+    '''
+    JSON call to create new edX account.
+    Used by form in signup_modal.html, which is included into navigation.html
+    '''
+    js = {'success': False}
+
+    post_vars = post_override if post_override else request.POST
+
+    # if doing signup for an external authorization, then get email, password, name from the eamap
+    # don't use the ones from the form, since the user could have hacked those
+    # unless originally we didn't get a valid email or name from the external auth
+    DoExternalAuth = 'ExternalAuthMap' in request.session
+    if DoExternalAuth:
+        eamap = request.session['ExternalAuthMap']
+        try:
+            validate_email(eamap.external_email)
+            email = eamap.external_email
+        except ValidationError:
+            email = post_vars.get('email', '')
+        if eamap.external_name.strip() == '':
+            name = post_vars.get('name', '')
+        else:
+            name = eamap.external_name 
+        password = eamap.internal_password
+        post_vars = dict(post_vars.items())
+        post_vars.update(dict(email=email, name=name, password=password))
+        log.info('In create_account with external_auth: post_vars = %s' % post_vars)
+
+    # Confirm we have a properly formed request
+    for a in ['username', 'email', 'password', 'name']:
+        if a not in post_vars:
+            js['value'] = "Error (401 {field}). E-mail us.".format(field=a)
+            js['field'] = a
+            return HttpResponse(json.dumps(js))
+
+    if post_vars.get('honor_code', 'false') != u'true':
+        js['value'] = "To enroll, you must follow the honor code.".format(field=a)
+        js['field'] = 'honor_code'
+        return HttpResponse(json.dumps(js))
+    
+    if 'stanford_affiliated' not in post_vars:
+        js['value'] = 'Please select whether, or not, you are affiliated with Stanford.'
+        js['field'] = 'stanford_affiliated'
+        return HttpResponse(json.dumps(js))
+
+    # Can't have terms of service for certain SHIB users, like at Stanford
+    tos_not_required = settings.MITX_FEATURES.get("AUTH_USE_SHIB") \
+                       and settings.MITX_FEATURES.get('SHIB_DISABLE_TOS') \
+                       and DoExternalAuth and ("shib" in eamap.external_domain)
+
+    if not tos_not_required:
+        if post_vars.get('terms_of_service', 'false') != u'true':
+            js['value'] = "You must accept the terms of service.".format(field=a)
+            js['field'] = 'terms_of_service'
+            return HttpResponse(json.dumps(js))
+
+    # Confirm appropriate fields are there.
+    # TODO: Check e-mail format is correct.
+    # TODO: Confirm e-mail is not from a generic domain (mailinator, etc.)? Not sure if
+    # this is a good idea
+    # TODO: Check password is sane
+
+    required_post_vars = ['username', 'email', 'name', 'password', 'terms_of_service', 'honor_code', 'profession', 'license_number', 
+                          'stanford_affiliated']
+    if tos_not_required:
+        required_post_vars =  ['username', 'email', 'name', 'password', 'honor_code', 'profession', 'license_number',
+                               'stanford_affiliated']
+
+    for a in required_post_vars:
+        if len(post_vars[a]) < 2:
+            error_str = {'username': 'Username must be minimum of two characters long.',
+                         'email': 'A properly formatted e-mail is required.',
+                         'name': 'Your legal name must be a minimum of two characters long.',
+                         'password': 'A valid password is required.',
+                         'terms_of_service': 'Accepting Terms of Service is required.',
+                         'honor_code': 'Agreeing to the Honor Code is required.',
+                         'profession': 'Please choose your profession.',
+                         'license_number': 'Please enter your license number.'}
+            js['value'] = error_str[a]
+            js['field'] = a
+            return HttpResponse(json.dumps(js))
+
+    try:
+        validate_email(post_vars['email'])
+    except ValidationError:
+        js['value'] = "Valid e-mail is required.".format(field=a)
+        js['field'] = 'email'
+        return HttpResponse(json.dumps(js))
+
+    try:
+        validate_slug(post_vars['username'])
+    except ValidationError:
+        js['value'] = "Username should only consist of A-Z and 0-9, with no spaces.".format(field=a)
+        js['field'] = 'username'
+        return HttpResponse(json.dumps(js))
+
+    # Ok, looks like everything is legit.  Create the account.
+    ret = _do_cme_create_account(post_vars)
+    if isinstance(ret, HttpResponse):  # if there was an error then return that
+        return ret
+    (user, profile, registration) = ret
+
+    d = {'name': post_vars['name'],
+         'key': registration.activation_key,
+         }
+
+    # composes activation email
+    subject = render_to_string('emails/activation_email_subject.txt', d)
+    # Email subject *must not* contain newlines
+    subject = ''.join(subject.splitlines())
+    message = render_to_string('emails/activation_email.txt', d)
+
+    try:
+        if settings.MITX_FEATURES.get('REROUTE_ACTIVATION_EMAIL'):
+            dest_addr = settings.MITX_FEATURES['REROUTE_ACTIVATION_EMAIL']
+            message = ("Activation for %s (%s): %s\n" % (user, user.email, profile.name) +
+                       '-' * 80 + '\n\n' + message)
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [dest_addr], fail_silently=False)
+        elif not settings.GENERATE_RANDOM_USER_CREDENTIALS:
+            res = user.email_user(subject, message, settings.DEFAULT_FROM_EMAIL)
+    except:
+        log.warning('Unable to send activation email to user', exc_info=True)
+        js['value'] = 'Could not send activation e-mail.'
+        return HttpResponse(json.dumps(js))
+
+    # Immediately after a user creates an account, we log them in. They are only
+    # logged in until they close the browser. They can't log in again until they click
+    # the activation link from the email.
+    login_user = authenticate(username=post_vars['username'], password=post_vars['password'])
+    login(request, login_user)
+    request.session.set_expiry(0)
+
+    if DoExternalAuth:
+        eamap.user = login_user
+        eamap.dtsignup = datetime.datetime.now(UTC)
+        eamap.save()
+        log.info("User registered with external_auth %s" % post_vars['username'])
+        log.info('Updated ExternalAuthMap for %s to be %s' % (post_vars['username'], eamap))
+
+        if settings.MITX_FEATURES.get('BYPASS_ACTIVATION_EMAIL_FOR_EXTAUTH'):
+            log.info('bypassing activation email')
+            login_user.is_active = True
+            login_user.save()
+
+    try_change_enrollment(request)
+
+    statsd.increment("common.student.account_created")
+
+    js = {'success': True}
+    HttpResponse(json.dumps(js), mimetype="application/json")
+
+    response = HttpResponse(json.dumps({'success': True}))
+
+    # set the login cookie for the edx marketing site
+    # we want this cookie to be accessed via javascript
+    # so httponly is set to None
+
+    if request.session.get_expire_at_browser_close():
+        max_age = None
+        expires = None
+    else:
+        max_age = request.session.get_expiry_age()
+        expires_time = time.time() + max_age
+        expires = cookie_date(expires_time)
+
+    response.set_cookie(settings.EDXMKTG_COOKIE_NAME,
+                        'true', max_age=max_age,
+                        expires=expires, domain=settings.SESSION_COOKIE_DOMAIN,
+                        path='/',
+                        secure=None,
+                        httponly=None)
+    return response
+
+
+def _do_cme_create_account(post_vars):
+    """
+    Given cleaned post variables, create the User and UserProfile objects, as well as the
+    registration for this user.
+
+    Returns a tuple (User, UserProfile, Registration).
+
+    Note: this function is also used for creating test users.
+    """
+    user = User(username=post_vars['username'],
+                email=post_vars['email'],
+                is_active=False)
+    user.set_password(post_vars['password'])
+    registration = Registration()
+    # TODO: Rearrange so that if part of the process fails, the whole process fails.
+    # Right now, we can have e.g. no registration e-mail sent out and a zombie account
+    try:
+        user.save()
+    except IntegrityError:
+        js = {'success': False}
+        # Figure out the cause of the integrity error
+        if len(User.objects.filter(username=post_vars['username'])) > 0:
+            js['value'] = "An account with the Public Username  '" + post_vars['username'] + "' already exists."
+            js['field'] = 'username'
+            return HttpResponse(json.dumps(js))
+
+        if len(User.objects.filter(email=post_vars['email'])) > 0:
+            js['value'] = "An account with the Email '" + post_vars['email'] + "' already exists."
+            js['field'] = 'email'
+            return HttpResponse(json.dumps(js))
+
+        raise
+
+    registration.register(user)
+
+    profile = UserProfile(user=user)
+    profile.name = post_vars['name']
+    profile.level_of_education = post_vars.get('level_of_education')
+    profile.gender = post_vars.get('gender')
+    profile.mailing_address = post_vars.get('mailing_address')
+    profile.goals = post_vars.get('goals')
+
+    try:
+        profile.year_of_birth = int(post_vars['year_of_birth'])
+    except (ValueError, KeyError):
+        # If they give us garbage, just ignore it instead
+        # of asking them to put an integer.
+        profile.year_of_birth = None
+    try:
+        profile.save()
+    except Exception:
+        log.exception("UserProfile creation failed for user {0}.".format(user.id))
+    return (user, profile, registration)

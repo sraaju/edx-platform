@@ -20,6 +20,12 @@ urlpatterns = ('',  # nopep8
     url(r'^dashboard$', 'student.views.dashboard', name="dashboard"),
     url(r'^login$', 'student.views.signin_user', name="signin_user"),
     url(r'^register$', 'student.views.register_user', name="register_user"),
+    
+ #   #CME Registration
+    url(r'^register/cme$', include('cme_registration.urls')),
+    url(r'^register/cme$', 'cme_registration.views.register_user', name='cme_register_user'),
+    url(r'^cme_create_account$', 'cme_registration.views.cme_create_account', name='cme_create_account'),
+
 
     url(r'^admin_dashboard$', 'dashboard.views.dashboard'),
 
