@@ -43,16 +43,16 @@ class CmeUserProfile(UserProfile):
                                        (' University Healthcare Alliance (UHA)', ' University Healthcare Alliance (UHA)'),
                                        (' Other, please enter:', ' Other, please enter:'))
     how_stanford_affiliated = models.CharField(
-                                               blank=True, null=True, max_length=50, choices=HOW_STANFORD_AFFILIATED_CHOICES)
+                                               blank=True, null=True, max_length=255, choices=HOW_STANFORD_AFFILIATED_CHOICES)
     PATIENT_POPULATION_CHOICES = (('Adult', 'Adult'),
                                   ('Pediatric', 'Pediatric'),
                                   ('Both (Adult/Pediatric)', 'Both (Adult/Pediatric)'))
     patient_population = models.CharField(
                                           blank=True, null=True, max_length=25, choices=PATIENT_POPULATION_CHOICES)
     specialty = models.CharField(
-                                 blank=True, null=True, max_length=50)
+                                 blank=True, null=True, max_length=255)
     sub_specialty = models.CharField(
-                                     blank=True, null=True, max_length=50)
+                                     blank=True, null=True, max_length=255)
     address_1 = models.TextField(blank=True, null=True)
     address_2 = models.TextField(blank=True, null=True)
     city = models.TextField(blank=True, null=True)
@@ -374,6 +374,6 @@ class CmeUserProfile(UserProfile):
                              ('SCCME Web site', 'SCCME Web site'),
                              ('Friend/Colleague', 'Friend/Colleague'),
                              ('Other (free form)', 'Other (free form)'))
-    hear_about_us = models.CharField(blank=True, null=True, max_length=25)
+    hear_about_us = models.CharField(blank=True, null=True, max_length=255)
     mailing_list = models.BooleanField(default=0)
      

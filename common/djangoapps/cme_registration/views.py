@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
 
 from student.models import (Registration, UserProfile)
+from cme_registration.models import CmeUserProfile
 from student.views import try_change_enrollment
 
 from mitxmako.shortcuts import render_to_response, render_to_string
@@ -267,7 +268,7 @@ def register_user(request, extra_context={}):
         'course_id': request.GET.get('course_id'),
         'enrollment_action': request.GET.get('enrollment_action'),
         'patient_population_choices': PATIENT_POPULATION_CHOICES,
-        'speciality_choices': SPECIALTY_CHOICES,
+        'specialty_choices': SPECIALTY_CHOICES,
         'sub_specialty_choices': SUB_SPECIALTY_CHOICES
     }
     context.update(extra_context)
@@ -311,14 +312,14 @@ def cme_create_account(request, post_override=None):
             js['field'] = a
             return HttpResponse(json.dumps(js))
 
+    if 'stanford_affiliated' not in post_vars:
+        js['value'] = 'Select whether, or not, you are affiliated with Stanford.'
+        js['field'] = 'stanford_affiliated'
+        return HttpResponse(json.dumps(js))
+
     if post_vars.get('honor_code', 'false') != u'true':
         js['value'] = "To enroll, you must follow the honor code.".format(field=a)
         js['field'] = 'honor_code'
-        return HttpResponse(json.dumps(js))
-    
-    if 'stanford_affiliated' not in post_vars:
-        js['value'] = 'Please select whether, or not, you are affiliated with Stanford.'
-        js['field'] = 'stanford_affiliated'
         return HttpResponse(json.dumps(js))
 
     # Can't have terms of service for certain SHIB users, like at Stanford
@@ -338,11 +339,18 @@ def cme_create_account(request, post_override=None):
     # this is a good idea
     # TODO: Check password is sane
 
-    required_post_vars = ['username', 'email', 'name', 'password', 'terms_of_service', 'honor_code', 'profession', 'license_number', 
-                          'stanford_affiliated']
+
+    required_post_vars = ['username', 'email', 'name', 'password', 'terms_of_service', 
+                          'honor_code', 'profession', 'license_number', 'patient_population', 'specialty', 
+                          'sub_specialty', 'address_1', 'city', 'state_province', 'postal_code',
+                          'country', 'phone_number', 'hear_about_us'
+                          ]
     if tos_not_required:
-        required_post_vars =  ['username', 'email', 'name', 'password', 'honor_code', 'profession', 'license_number',
-                               'stanford_affiliated']
+        required_post_vars =  ['username', 'email', 'name', 'password', 
+                               'honor_code', 'profession', 'license_number', 'patient_population', 'specialty', 
+                               'sub_specialty', 'address_1', 'city', 'state_province', 'postal_code',
+                               'country', 'phone_number', 'hear_about_us'
+                               ]
 
     for a in required_post_vars:
         if len(post_vars[a]) < 2:
@@ -352,8 +360,18 @@ def cme_create_account(request, post_override=None):
                          'password': 'A valid password is required.',
                          'terms_of_service': 'Accepting Terms of Service is required.',
                          'honor_code': 'Agreeing to the Honor Code is required.',
-                         'profession': 'Please choose your profession.',
-                         'license_number': 'Please enter your license number.'}
+                         'profession': 'Choose your profession.',
+                         'license_number': 'Enter your license number.',
+                         'patient_population': 'Choose your patient population',
+                         'specialty': 'Choose your specialty',
+                         'sub_specialty': 'Choose your sub-specialty',
+                         'address_1': 'Enter your Address 01',
+                         'city': 'Enter your city',
+                         'state_province': "Choose your state/Province",
+                         'postal_code': 'Enter your postal code',
+                         'country': 'Choose your country',
+                         'phone_number': 'Enter your phone number',
+                         'hear_about_us': 'Choose how you heard about us'}
             js['value'] = error_str[a]
             js['field'] = a
             return HttpResponse(json.dumps(js))
@@ -487,19 +505,44 @@ def _do_cme_create_account(post_vars):
 
     profile = UserProfile(user=user)
     profile.name = post_vars['name']
-    profile.level_of_education = post_vars.get('level_of_education')
-    profile.gender = post_vars.get('gender')
-    profile.mailing_address = post_vars.get('mailing_address')
-    profile.goals = post_vars.get('goals')
+ #   profile.level_of_education = post_vars.get('level_of_education')
+ #   profile.gender = post_vars.get('gender')
+ #   profile.mailing_address = post_vars.get('mailing_address')
+ #   profile.goals = post_vars.get('goals')
 
-    try:
-        profile.year_of_birth = int(post_vars['year_of_birth'])
-    except (ValueError, KeyError):
-        # If they give us garbage, just ignore it instead
-        # of asking them to put an integer.
-        profile.year_of_birth = None
+ #   try:
+ #       profile.year_of_birth = int(post_vars['year_of_birth'])
+ #   except (ValueError, KeyError):
+ #      # If they give us garbage, just ignore it instead
+ #       # of asking them to put an integer.
+ #       profile.year_of_birth = None
+ 
+ 
+    cme_registration = CmeUserProfile(userprofile_ptr=profile)
+    cme_registration.profession = post_vars.get('profession')
+    cme_registration.professional_designation = post_vars.get('professional_designation')
+    cme_registration.license_number = post_vars.get('license_number')
+    cme_registration.organization = post_vars.get('organization')
+    cme_registration.stanford_affiliated = post_vars.get('stanford_affiliated')
+    cme_registration.how_stanford_affiliated = post_vars.get('how_stanford_affiliated')
+    cme_registration.patient_population = post_vars.get('patient_population')
+    cme_registration.specialty = post_vars.get('specialty')
+    cme_registration.sub_specialty = post_vars.get('sub_specialty')
+    cme_registration.address_1 = post_vars.get('address_1')
+    cme_registration.address_2 = post_vars.get('address_2')
+    cme_registration.city = post_vars.get('city')
+    cme_registration.state_province = post_vars.get('state_province')
+    cme_registration.postal_code = post_vars.get('postal_code')
+    cme_registration.country = post_vars.get('country')
+    cme_registration.phone_number = post_vars.get('phone_number')
+    cme_registration.extension = post_vars.get('extension')
+    cme_registration.fax = post_vars.get('fax')
+    cme_registration.hear_about_us = post_vars.get('hear_about_us')
+    cme_registration.mailing_list = post_vars.get('mailing_list')
+ 
     try:
         profile.save()
+        cme_registration.save()
     except Exception:
         log.exception("UserProfile creation failed for user {0}.".format(user.id))
     return (user, profile, registration)
