@@ -5,6 +5,16 @@ These are notable changes in edx-platform.  This is a rolling list of changes,
 in roughly chronological order, most recent first.  Add your entries at or near
 the top.  Include a label indicating the component affected.
 
+Common: Added setting to specify Celery Broker vhost
+
+Studio: Add table for tracking course creator permissions (not yet used).
+Update rake django-admin[syncdb] and rake django-admin[migrate] so they
+run for both LMS and CMS.
+
+LMS: Added *experimental* crowdsource hinting manager page.
+
+XModule: Added *experimental* crowdsource hinting module.
+
 Common: Student information is now passed to the tracking log via POST instead of GET.
 
 Common: Add tests for documentation generation to test suite
