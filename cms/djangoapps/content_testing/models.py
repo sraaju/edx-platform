@@ -2,11 +2,14 @@ from django.db import models
 from xmodule.modulestore.django import modulestore
 from xmodule.modulestore import Location
 from contentstore.views.preview import get_preview_module
+from mitxmako.shortcuts import render_to_string
 import pickle
 
 
 class ContentTest(models.Model):
-    '''model for a test of a custom response problem'''
+    """
+    Model for a user-created test for a capa-problem
+    """
 
     # the problem to test (location)
     # future-proof against long locations?
@@ -23,7 +26,10 @@ class ContentTest(models.Model):
     response_dict = models.TextField(blank=True)
 
     def __init__(self, *arg, **kwargs):
-        '''pickle the dictionary for storage'''
+        """
+        Overwrite default __init__ behavior to pickle the dictionary and
+            save in a new field so we know if the response_dict gets overwritten
+        """
 
         if 'response_dict' not in kwargs:
             kwargs['response_dict'] = {}
@@ -31,11 +37,26 @@ class ContentTest(models.Model):
         kwargs['response_dict'] = pickle.dumps(kwargs['response_dict'])
         super(ContentTest, self).__init__(*arg, **kwargs)
 
-        #store the old dict for later comparison
-        self.old_reponse_dict = self.response_dict
+        # store the old dict for later comparison (only update if it is changed)
+        self._old_response_dict = self.response_dict
+
+    @property
+    def capa_problem(self):
+        # create a preview capa problem
+        return self.capa_module.lcp
+
+    @property
+    def capa_module(self):
+        # create a preview of the capa_module
+        problem_descriptor = modulestore().get_item(Location(self.problem_location))
+        return get_preview_module(0, problem_descriptor)
 
     def save(self, *arg, **kwargs):
-        '''make it automatically create children if needed upon save'''
+        """
+        Overwrite default save behavior with the following features:
+            > If the children haven't been created, create them
+            > If the response dictionary is being changed, update the children
+        """
 
         # if we are changing something, reset verdict by default
         if not('dont_reset' in kwargs):
@@ -47,17 +68,17 @@ class ContentTest(models.Model):
         if hasattr(self, 'response_dict'):
             #if it isn't pickled, see if it is new.  If it is, update the children
             if not(isinstance(self.response_dict, basestring)):
-                if pickle.dumps(self.response_dict) != self.old_reponse_dict:
+                if pickle.dumps(self.response_dict) != self._old_response_dict:
                     self._update_dictionary(self.response_dict)
                     self.response_dict = pickle.dumps(self.response_dict)
 
-        #save it as normal
+        # save it as normal
         super(ContentTest, self).save(*arg, **kwargs)
 
         # look for children
         children = Response.objects.filter(content_test=self.pk)
 
-        #if there are none, try to create them
+        # if there are none, try to create them
         if children.count() == 0:
             self._create_children()
 
@@ -74,21 +95,54 @@ class ContentTest(models.Model):
         self.save(dont_reset=True)
         return self.verdict
 
-    @property
-    def capa_problem(self):
-        # create a preview capa problem
-        return self.capa_module.lcp
+    def get_html_summary(self):
+        """
+        return an html summary of this test
+        """
 
-    @property
-    def capa_module(self):
-        # create a preview of the capa_module
-        problem_descriptor = modulestore().get_item(Location(self.problem_location))
-        return get_preview_module(0, problem_descriptor)
+        # retrieve all inputs sorted first by response, and then by order in that response
+        sorted_inputs = self.input_set.order_by('response_index', 'input_index').values('answer')
+        answers = [input_model['answer'] for input_model in sorted_inputs]
+
+        # construct a context for rendering this
+        context = {'answers': answers, 'verdict': self.verdict, 'should_be': self.should_be}
+        return render_to_string('content_testing/unit_summary.html', context)
+
+    def get_html_form(self):
+        """
+        return html to put into form for editing and creating
+        """
+
+        # THIS FUNCTION IS BASICALLY A COMPLETE HACK
+
+        # html with the inputs blank
+        blank_html = self.capa_problem.get_html()
+        html_form = blank_html
+
+        # if we have a response dict, fill in the html
+        if hasattr(self, 'response_dict'):
+            resp_dict = self.response_dict
+
+            # unpickle if necessary
+            if isinstance(resp_dict, basestring):
+                resp_dict = pickle.loads(resp_dict)
+
+            # go through filling in the html
+            for id_string in resp_dict:
+                html_form = html_form.replace(
+                    "id=\"input_"+id_string+"\"",
+                    "id=\"input_"+id_string+"\""+" value = "+"\""+resp_dict[id_string]+"\"")
+
+            html_form = html_form.replace("value=\"\"", "")
+
+        return html_form
 
 #======= Private Methods =======#
 
     def _evaluate(self, response_dict):
-        '''evaluate the problem with the response_dict and return the correct/incorrect result'''
+        """
+        Give the capa_problem the response dictionary and return the result
+        """
 
         # instantiate the capa problem so it can grade itself
         capa = self.capa_problem
@@ -112,8 +166,7 @@ class ContentTest(models.Model):
 
     def _create_response_dictionary(self):
         '''create dictionary to be submitted to the grading function'''
-        # why not just store this dictionary directly in the database??
-        # as a string and reconstruct here?
+        # why not just unpickle?
 
         response_dict = {}
         for resp_model in self.response_set.all():
@@ -173,7 +226,10 @@ class Response(models.Model):
             # create the input models
             Input.objects.create(
                 response=self,
+                content_test=self.content_test,
                 string_id=entry.attrib['id'],
+                response_index=entry.attrib['response_id'],
+                input_index=entry.attrib['answer_id'],
                 answer=response_dict.get(entry.attrib['id'], ''))
 
     @property
@@ -202,8 +258,17 @@ class Input(models.Model):
     # The response in which this input lives
     response = models.ForeignKey(Response)
 
+    # The test in which this input resides (grandchild)
+    content_test = models.ForeignKey(ContentTest)
+
     # sequence (first response field, second, etc)
     string_id = models.CharField(max_length=100, editable=False)
+
+    # number for the response that this input is in
+    response_index = models.PositiveSmallIntegerField()
+
+    # number for the place this input is in the response
+    input_index = models.PositiveSmallIntegerField()
 
     # the input, supposed a string
     answer = models.CharField(max_length=50, blank=True)

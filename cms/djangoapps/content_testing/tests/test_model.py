@@ -2,6 +2,7 @@
 Unit tests on the models that make up automated content testing
 """
 
+from textwrap import dedent
 from django.test import TestCase
 from xmodule.modulestore import Location
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
@@ -13,6 +14,49 @@ from content_testing.models import ContentTest, Response, Input
 class ContentTestTest(ModuleStoreTestCase):
     '''set up a content test to test'''
 
+    SCRIPT = dedent("""
+    def is_prime (n):
+        primality = True
+        for i in range(2,int(math.sqrt(n))+1):
+            if n%i == 0:
+                primality = False
+                break
+        return primality
+
+    def test_prime(expect,ans):
+        a1=int(ans[0])
+        return is_prime(a1)""").strip()
+    NUM_INPUTS = 2  # tied to script
+
+    HTML = dedent("""
+    <table>
+        <tr>
+            <td>
+                Inputs
+            </td>
+            <td>
+                Should Be:
+            </td>
+            <td>
+                Verdict:
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <ol>
+                    <li> 5 </li>
+                    <li> 174440041 </li>
+                </ol>
+            </td>
+            <td>
+                Correct
+            </td>
+            <td>
+                None
+            </td>
+        <tr>
+    </table>""").strip()
+
     def setUp(self):
         #course in which to put the problem
         self.course = CourseFactory.create()
@@ -21,30 +65,18 @@ class ContentTestTest(ModuleStoreTestCase):
         #make the problem
         from capa.tests.response_xml_factory import CustomResponseXMLFactory
         custom_template = "i4x://edx/templates/problem/Custom_Python-Evaluated_Input"
-        self.script = """def is_prime (n):
-  primality = True
-  for i in range(2,int(math.sqrt(n))+1):
-    if n%i == 0:
-        primality = False
-        break
-  return primality
-
-def test_prime(expect,ans):
-  a1=int(ans[0])
-  return is_prime(a1)"""
 
         #change the script if 1
-        self.num_inputs = 2
         problem_xml = CustomResponseXMLFactory().build_xml(
-            script=self.script,
+            script=self.SCRIPT,
             cfn='test_prime',
-            num_inputs=self.num_inputs)
+            num_inputs=self.NUM_INPUTS)
 
         self.problem = ItemFactory.create(
             parent_location=self.course.location,
             data=problem_xml,
             template=custom_template,
-            num_inputs=self.num_inputs)
+            num_inputs=self.NUM_INPUTS)
 
         #sigh
         input_id_base = self.problem.id.replace('://', '-').replace('/', '-')
@@ -85,6 +117,7 @@ def test_prime(expect,ans):
             response_dict=self.response_dict_incorrect
         )
 
+
 class WhiteBoxTests(ContentTestTest):
     '''test that inner methods are working'''
 
@@ -97,11 +130,11 @@ class WhiteBoxTests(ContentTestTest):
         capa = test_model.capa_problem
 
         #assert no error
-        assert self.script in capa.problem_text
+        assert self.SCRIPT in capa.problem_text
 
     def test_create_children(self):
         '''test that the ContentTest is created with the right structure'''
-        
+
         # import nose; nose.tools.set_trace()
         test_model = ContentTest.objects.create(
             problem_location=str(self.problem.location),
@@ -113,7 +146,7 @@ class WhiteBoxTests(ContentTestTest):
 
         #and the input
         input_set = response_set.all()[0].input_set
-        self.assertEqual(input_set.count(), self.num_inputs)
+        self.assertEqual(input_set.count(), self.NUM_INPUTS)
 
     def test_create_dictionary(self):
         '''tests the constructions of the response dictionary'''
@@ -179,7 +212,6 @@ class BlackBoxTests(ContentTestTest):
         # make sure it failed
         self.assertEqual(False, self.fail_incorrect.verdict)
 
-
     def test_reset_verdict(self):
         '''test that changing things resets the verdict'''
 
@@ -209,3 +241,19 @@ class BlackBoxTests(ContentTestTest):
 
         # assert that the verdict is now False
         self.assertEqual(False, test_model.verdict)
+
+    def test_get_html_summary(self):
+        """
+        test that html is rendered correctly
+        """
+
+        html = self.pass_correct.get_html_summary()
+        self.assertEqual(html, self.HTML)
+
+    def test_get_html_form(self):
+        """
+        test that html is rendered correctly
+        """
+
+        html = self.pass_correct.get_html_form()
+        self.assertEqual(html, ":)")
