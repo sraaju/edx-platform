@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django_future.csrf import ensure_csrf_cookie
 from django.conf import settings
@@ -14,6 +15,8 @@ from student.views import try_change_enrollment
 from mitxmako.shortcuts import render_to_response, render_to_string
 
 from statsd import statsd
+
+log = logging.getLogger("mitx.student")
 
 @ensure_csrf_cookie
 def register_user(request, extra_context={}):
@@ -394,7 +397,7 @@ def cme_create_account(request, post_override=None):
     ret = _do_cme_create_account(post_vars)
     if isinstance(ret, HttpResponse):  # if there was an error then return that
         return ret
-    (user, profile, registration) = ret
+    (user, cme_user_profile, registration) = ret
 
     d = {'name': post_vars['name'],
          'key': registration.activation_key,
@@ -409,7 +412,7 @@ def cme_create_account(request, post_override=None):
     try:
         if settings.MITX_FEATURES.get('REROUTE_ACTIVATION_EMAIL'):
             dest_addr = settings.MITX_FEATURES['REROUTE_ACTIVATION_EMAIL']
-            message = ("Activation for %s (%s): %s\n" % (user, user.email, profile.name) +
+            message = ("Activation for %s (%s): %s\n" % (user, user.email, cme_user_profile.name) +
                        '-' * 80 + '\n\n' + message)
             send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [dest_addr], fail_silently=False)
         elif not settings.GENERATE_RANDOM_USER_CREDENTIALS:
@@ -502,47 +505,56 @@ def _do_cme_create_account(post_vars):
         raise
 
     registration.register(user)
+    
+    cme_user_profile = CmeUserProfile(user=user)
+    
+    #UserProfile fields
+    cme_user_profile.name = post_vars['name']
+    
+    #CmeUserProfile fields
+    cme_user_profile.profession = post_vars.get('profession')
+    cme_user_profile.professional_designation = post_vars.get('professional_designation')
+    cme_user_profile.license_number = post_vars.get('license_number')
+    cme_user_profile.organization = post_vars.get('organization')
+    cme_user_profile.stanford_affiliated = post_vars.get('stanford_affiliated')
 
-    profile = UserProfile(user=user)
-    profile.name = post_vars['name']
- #   profile.level_of_education = post_vars.get('level_of_education')
- #   profile.gender = post_vars.get('gender')
- #   profile.mailing_address = post_vars.get('mailing_address')
- #   profile.goals = post_vars.get('goals')
+    if post_vars.get('how_stanford_affiliated') == 'Other, please enter:':
+        cme_user_profile.how_stanford_affiliated = post_vars.get('how_stanford_affiliated_free')
+    else:
+        cme_user_profile.how_stanford_affiliated = post_vars.get('how_stanford_affiliated')
 
- #   try:
- #       profile.year_of_birth = int(post_vars['year_of_birth'])
- #   except (ValueError, KeyError):
- #      # If they give us garbage, just ignore it instead
- #       # of asking them to put an integer.
- #       profile.year_of_birth = None
- 
- 
-    cme_registration = CmeUserProfile(userprofile_ptr=profile)
-    cme_registration.profession = post_vars.get('profession')
-    cme_registration.professional_designation = post_vars.get('professional_designation')
-    cme_registration.license_number = post_vars.get('license_number')
-    cme_registration.organization = post_vars.get('organization')
-    cme_registration.stanford_affiliated = post_vars.get('stanford_affiliated')
-    cme_registration.how_stanford_affiliated = post_vars.get('how_stanford_affiliated')
-    cme_registration.patient_population = post_vars.get('patient_population')
-    cme_registration.specialty = post_vars.get('specialty')
-    cme_registration.sub_specialty = post_vars.get('sub_specialty')
-    cme_registration.address_1 = post_vars.get('address_1')
-    cme_registration.address_2 = post_vars.get('address_2')
-    cme_registration.city = post_vars.get('city')
-    cme_registration.state_province = post_vars.get('state_province')
-    cme_registration.postal_code = post_vars.get('postal_code')
-    cme_registration.country = post_vars.get('country')
-    cme_registration.phone_number = post_vars.get('phone_number')
-    cme_registration.extension = post_vars.get('extension')
-    cme_registration.fax = post_vars.get('fax')
-    cme_registration.hear_about_us = post_vars.get('hear_about_us')
-    cme_registration.mailing_list = post_vars.get('mailing_list')
- 
-    try:
-        profile.save()
-        cme_registration.save()
+    cme_user_profile.patient_population = post_vars.get('patient_population')
+
+    if post_vars.get('specialty') == 'Other (free form)':
+        cme_user_profile.specialty = post_vars.get('specialty_free')
+    else:
+        cme_user_profile.specialty = post_vars.get('specialty')
+
+    if post_vars.get('sub_specialty') == 'Other (free form)':
+        cme_user_profile.sub_specialty = post_vars.get('sub_specialty_free')
+    else:
+        cme_user_profile.sub_specialty = post_vars.get('sub_specialty')
+    
+    cme_user_profile.address_1 = post_vars.get('address_1')
+    cme_user_profile.address_2 = post_vars.get('address_2')
+    cme_user_profile.city = post_vars.get('city')
+    cme_user_profile.state_province = post_vars.get('state_province')
+    cme_user_profile.postal_code = post_vars.get('postal_code')
+    cme_user_profile.country = post_vars.get('country')
+    cme_user_profile.phone_number = post_vars.get('phone_number')
+    cme_user_profile.extension = post_vars.get('extension')
+    cme_user_profile.fax = post_vars.get('fax')
+
+    if post_vars.get('hear_about_us') == 'Other (free form)':
+        cme_user_profile.hear_about_us = post_vars.get('hear_about_us_free')
+    else:
+        cme_user_profile.hear_about_us = post_vars.get('hear_about_us')
+
+    cme_user_profile.mailing_list = post_vars.get('mailing_list')
+
+    try:    
+        cme_user_profile.save()
+
     except Exception:
         log.exception("UserProfile creation failed for user {0}.".format(user.id))
-    return (user, profile, registration)
+    return (user, cme_user_profile, registration)

@@ -40,8 +40,8 @@ class CmeUserProfile(UserProfile):
                                        ('Packard Children\'s Health Alliance (PCHA)', 'Packard Children\'s Health Alliance (PCHA)'),
                                        ('Stanford Hospital & Clinics', 'Stanford Hospital & Clinics'),
                                        ('Stanford University', 'Stanford University'),
-                                       (' University Healthcare Alliance (UHA)', ' University Healthcare Alliance (UHA)'),
-                                       (' Other, please enter:', ' Other, please enter:'))
+                                       ('University Healthcare Alliance (UHA)', 'University Healthcare Alliance (UHA)'),
+                                       ('Other, please enter:', 'Other, please enter:'))
     how_stanford_affiliated = models.CharField(
                                                blank=True, null=True, max_length=255, choices=HOW_STANFORD_AFFILIATED_CHOICES)
     PATIENT_POPULATION_CHOICES = (('Adult', 'Adult'),
