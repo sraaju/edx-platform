@@ -3,12 +3,12 @@ from student.models import UserProfile
 
 # Create your models here.
 
-    
+
 #Fields for CME specific registration page
 class CmeUserProfile(UserProfile):
     class Meta:
         db_table = "cme_registration"
-        
+
     PROFESSION_CHOICES = (('Allied Health Professional', 'Allied Health Professional'),
                           ('Fellow', 'Fellow'),
                           ('Nurse', 'Nurse'),
@@ -17,42 +17,32 @@ class CmeUserProfile(UserProfile):
                           ('Physician Assistant', 'Physician Assistant'),
                           ('Resident', 'Resident'),
                           ('Student', 'Student'))
-    profession = models.CharField(
-                                  blank=True, null=True, max_length=30, choices=PROFESSION_CHOICES
-                                  )
- 
+    profession = models.CharField(blank=True, null=True, max_length=30, choices=PROFESSION_CHOICES)
+
     PROFESSIONAL_DESIGNATION_CHOICES = (('MD', 'MD'),
                                         ('DO', 'DO'),
                                         ('PA', 'PA'),
                                         ('NP', 'NP'),
                                         ('RN', 'RN'))
-    professional_designation = models.CharField(
-                                                blank=True, null=True, max_length=3, choices=PROFESSIONAL_DESIGNATION_CHOICES
-                                                )
-    license_number = models.CharField(
-                                      blank=True, null=True, max_length=255
-                                      )
-    organization = models.CharField(
-                                      blank=True, null=True, max_length=255
-                                      )
+    professional_designation = models.CharField(blank=True, null=True, max_length=3, choices=PROFESSIONAL_DESIGNATION_CHOICES)
+    license_number = models.CharField(blank=True, null=True, max_length=255)
+    organization = models.CharField(blank=True, null=True, max_length=255)
     stanford_affiliated = models.BooleanField(default=0)
+
     HOW_STANFORD_AFFILIATED_CHOICES = (('Lucile Packard Children\'s Hospital at Stanford', 'Lucile Packard Children\'s Hospital at Stanford'),
                                        ('Packard Children\'s Health Alliance (PCHA)', 'Packard Children\'s Health Alliance (PCHA)'),
                                        ('Stanford Hospital & Clinics', 'Stanford Hospital & Clinics'),
                                        ('Stanford University', 'Stanford University'),
                                        ('University Healthcare Alliance (UHA)', 'University Healthcare Alliance (UHA)'),
                                        ('Other, please enter:', 'Other, please enter:'))
-    how_stanford_affiliated = models.CharField(
-                                               blank=True, null=True, max_length=255, choices=HOW_STANFORD_AFFILIATED_CHOICES)
+    how_stanford_affiliated = models.CharField(blank=True, null=True, max_length=255, choices=HOW_STANFORD_AFFILIATED_CHOICES)
+
     PATIENT_POPULATION_CHOICES = (('Adult', 'Adult'),
                                   ('Pediatric', 'Pediatric'),
                                   ('Both (Adult/Pediatric)', 'Both (Adult/Pediatric)'))
-    patient_population = models.CharField(
-                                          blank=True, null=True, max_length=25, choices=PATIENT_POPULATION_CHOICES)
-    specialty = models.CharField(
-                                 blank=True, null=True, max_length=255)
-    sub_specialty = models.CharField(
-                                     blank=True, null=True, max_length=255)
+    patient_population = models.CharField(blank=True, null=True, max_length=25, choices=PATIENT_POPULATION_CHOICES)
+    specialty = models.CharField(blank=True, null=True, max_length=255)
+    sub_specialty = models.CharField(blank=True, null=True, max_length=255)
     address_1 = models.TextField(blank=True, null=True)
     address_2 = models.TextField(blank=True, null=True)
     city = models.TextField(blank=True, null=True)
@@ -114,9 +104,8 @@ class CmeUserProfile(UserProfile):
                      ('Quebec', 'Quebec'),
                      ('Saskatchewan', 'Saskatchewan'),
                      ('Yukon Territory', 'Yukon Territory'))
- 
-    state_province = models.CharField(
-                                      blank=True, null=True, max_length=50, choices=STATE_CHOICES)
+
+    state_province = models.CharField(blank=True, null=True, max_length=50, choices=STATE_CHOICES)
     postal_code = models.CharField(blank=True, null=True, max_length=20)
     COUNTRY_CHOICES = (('United States', 'United States'),
                        ('Afghanistan', 'Afghanistan'),
@@ -364,7 +353,7 @@ class CmeUserProfile(UserProfile):
                        ('Yemen', 'Yemen'),
                        ('Zambia', 'Zambia'),
                        ('Zimbabwe', 'Zimbabwe'))
-     
+
     country = models.CharField(blank=True, null=True, max_length=50, choices=COUNTRY_CHOICES)
     phone_number = models.CharField(blank=True, null=True, max_length=30)
     extension = models.CharField(blank=True, null=True, max_length=10)
@@ -376,4 +365,3 @@ class CmeUserProfile(UserProfile):
                              ('Other (free form)', 'Other (free form)'))
     hear_about_us = models.CharField(blank=True, null=True, max_length=255)
     mailing_list = models.BooleanField(default=0)
-     

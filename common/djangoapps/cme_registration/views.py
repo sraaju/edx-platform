@@ -18,6 +18,7 @@ from statsd import statsd
 
 log = logging.getLogger("mitx.student")
 
+
 @ensure_csrf_cookie
 def register_user(request, extra_context={}):
     """
@@ -26,54 +27,53 @@ def register_user(request, extra_context={}):
     if request.user.is_authenticated():
         return redirect(reverse('dashboard'))
 
-
     SPECIALTY_CHOICES = {}
     SUB_SPECIALTY_CHOICES = {}
-    
+
     PATIENT_POPULATION_CHOICES = (('Adult', 'Adult'),
                                   ('Pediatric', 'Pediatric'),
                                   ('Both (Adult/Pediatric)', 'Both (Adult/Pediatric'))
     SPECIALTY_CHOICES['Adult'] = (('Addiction Medicine', 'Addiction Medicine'),
                                   ('Allergy', 'Allergy'),
                                   ('Anesthesiology', 'Anesthesiology'),
-                                  ('Cardiology','Cardiology'),
+                                  ('Cardiology', 'Cardiology'),
                                   ('Complimentary Medicine', 'Complimentary Medicine'),
                                   ('Critical Care Medicine & ICU', 'Critical Care Medicine & ICU'),
-                                  ('Dentistry','Dentistry'),
+                                  ('Dentistry', 'Dentistry'),
                                   ('Dermatology', 'Dermatology'),
                                   ('Emergency Medicine', 'Emergency Medicine'),
                                   ('Endocrinology', 'Endocrinology'),
-                                  ('Family Practice','Family Practice'),
+                                  ('Family Practice', 'Family Practice'),
                                   ('Gastroenterology & Hepatology', 'Gastroenterology & Hepatology'),
                                   ('General Practice', 'General Practice'),
-                                  ('Gerontology','Gerontology'),
+                                  ('Gerontology', 'Gerontology'),
                                   ('Head & Neck Surgery', 'Head & Neck Surgery'),
                                   ('Health Education', 'Health Education'),
                                   ('Hematology', 'Hematology'),
-                                  ('Immunology & Rheumatology','Immunology & Rheumatology'),
+                                  ('Immunology & Rheumatology', 'Immunology & Rheumatology'),
                                   ('Infectious Disease', 'Infectious Disease'),
                                   ('Internal Medicine', 'Internal Medicine'),
                                   ('Nephrology', 'Nephrology'),
                                   ('Neurology', 'Neurology'),
-                                  ('Neurosurgery','Neurosurgery'),
+                                  ('Neurosurgery', 'Neurosurgery'),
                                   ('Nutrition', 'Nutrition'),
                                   ('Obstetrics & Gynecology', 'Obstetrics & Gynecology'),
                                   ('Oncology', 'Oncology'),
                                   ('Ophthalmology', 'Ophthalmology'),
-                                  ('Orthopaedic Surgery','Orthopaedic Surgery'),
+                                  ('Orthopaedic Surgery', 'Orthopaedic Surgery'),
                                   ('Palliative Care', 'Palliative Care'),
                                   ('Pathology', 'Pathology'),
                                   ('Pharmacology', 'Pharmacology'),
-                                  ('Physical Medicine and Rehabilitation','Physical Medicine and Rehabilitation'),
+                                  ('Physical Medicine and Rehabilitation', 'Physical Medicine and Rehabilitation'),
                                   ('Psychiatry', 'Psychiatry'),
                                   ('Psychology', 'Psychology'),
                                   ('Public Health', 'Public Health'),
                                   ('Pulmonology', 'Pulmonology'),
                                   ('Radiology', 'Radiology'),
-                                  ('Radiation Oncology','Radiation Oncology'),
+                                  ('Radiation Oncology', 'Radiation Oncology'),
                                   ('Surgery', 'Surgery'),
                                   ('Transplant', 'Transplant'),
-                                  ('Urology','Urology'))
+                                  ('Urology', 'Urology'))
 
     SPECIALTY_CHOICES['Pediatric'] = (('Addiction Medicine', 'Addiction Medicine'),
                                       ('Adolescent Medicine', 'Adolescent Medicine'),
@@ -174,25 +174,25 @@ def register_user(request, extra_context={}):
                                            ('Surgery', 'Surgery'),
                                            ('Vascular', 'Vascular'),
                                            ('Other (free form)', 'Other (free form)'))
-                                           
+
     SUB_SPECIALTY_CHOICES['Internal Medicine'] = (('Cardiology', 'Cardiology'),
                                                   ('Dermatology', 'Dermatology'),
                                                   ('Endocrinology, Gerontology & Metabolism', 'Endocrinology, Gerontology & Metabolism'),
                                                   ('Gastroenterology & Hepatology', 'Gastroenterology & Hepatology'),
                                                   ('Hematology', 'Hematology', 'Hematology', 'Hematology'),
-                                                  ('Immunology & Rheumatology','Immunology & Rheumatology'),
+                                                  ('Immunology & Rheumatology', 'Immunology & Rheumatology'),
                                                   ('Infectious Disease', 'Infectious Disease'),
                                                   ('Nephrology', 'Nephrology'),
                                                   ('Preventative Medicine', 'Preventative Medicine'),
                                                   ('Pulmonary', 'Pulmonary'),
                                                   ('Other (free form)', 'Other (free form)'))
-                                                  
+
     SUB_SPECIALTY_CHOICES['Obstetrics & Gynecology'] = (('Gynecology', 'Gynecology'),
                                                         ('Obstetrics', 'Obstetrics'),
                                                         ('Maternal & Fetal Medicine', 'Maternal & Fetal Medicine'),
                                                         ('Women\'s Health', 'Women\'s Health'),
                                                         ('Other (free form)', 'Other (free form)'))
-                                                        
+
     SUB_SPECIALTY_CHOICES['Oncology'] = (('Breast', 'Breast'),
                                          ('Gastroenterology', 'Gastroenterology'),
                                          ('Gynecology', 'Gynecology'),
@@ -202,10 +202,10 @@ def register_user(request, extra_context={}):
                                          ('Surgical', 'Surgical'),
                                          ('Urology', 'Urology'),
                                          ('Other (free form)', 'Other (free form)'))
-    
+
     SUB_SPECIALTY_CHOICES['Palliative Care'] = (('Hospice', 'Hospice'),
                                                 ('Other (free form)', 'Other (free form)'))
-    
+
     SUB_SPECIALTY_CHOICES['Pediatrics'] = (('Adolescent Medicine', 'Adolescent Medicine'),
                                            ('Allergy', 'Allergy'),
                                            ('Anesthesiology', 'Anesthesiology'),
@@ -243,7 +243,7 @@ def register_user(request, extra_context={}):
     SUB_SPECIALTY_CHOICES['Pulmonology'] = (('Critical Care', 'Critical Care'),
                                             ('Respiratory', 'Respiratory'),
                                             ('Other (free form)', 'Other (free form)'))
-    
+
     SUB_SPECIALTY_CHOICES['Surgery'] = (('Bariatric Surgery', 'Bariatric Surgery'),
                                         ('Cardiac Surgery', 'Cardiac Surgery'),
                                         ('Cardiothoracic Surgery', 'Cardiothoracic Surgery'),
@@ -261,11 +261,10 @@ def register_user(request, extra_context={}):
                                         ('Upper Extremity/ Hand Surgery', 'Upper Extremity/ Hand Surgery'),
                                         ('Vascular Surgery', 'Vascular Surgery'),
                                         ('Other (free form)', 'Other (free form)'))
-    
+
     SUB_SPECIALTY_CHOICES['Transplant'] = (('Solid Organ', 'Solid Organ'),
                                            ('Blood and Bone Marrow', 'Blood and Bone Marrow'),
                                            ('Other (free form)', 'Other (free form)'))
-
 
     context = {
         'course_id': request.GET.get('course_id'),
@@ -277,6 +276,7 @@ def register_user(request, extra_context={}):
     context.update(extra_context)
 
     return render_to_response('cme_register.html', context)
+
 
 @ensure_csrf_cookie
 def cme_create_account(request, post_override=None):
@@ -302,7 +302,7 @@ def cme_create_account(request, post_override=None):
         if eamap.external_name.strip() == '':
             name = post_vars.get('name', '')
         else:
-            name = eamap.external_name 
+            name = eamap.external_name
         password = eamap.internal_password
         post_vars = dict(post_vars.items())
         post_vars.update(dict(email=email, name=name, password=password))
@@ -326,9 +326,10 @@ def cme_create_account(request, post_override=None):
         return HttpResponse(json.dumps(js))
 
     # Can't have terms of service for certain SHIB users, like at Stanford
-    tos_not_required = settings.MITX_FEATURES.get("AUTH_USE_SHIB") \
-                       and settings.MITX_FEATURES.get('SHIB_DISABLE_TOS') \
-                       and DoExternalAuth and ("shib" in eamap.external_domain)
+    tos_not_required = (settings.MITX_FEATURES.get("AUTH_USE_SHIB")
+                        and settings.MITX_FEATURES.get('SHIB_DISABLE_TOS')
+                        and DoExternalAuth
+                        and ("shib" in eamap.external_domain))
 
     if not tos_not_required:
         if post_vars.get('terms_of_service', 'false') != u'true':
@@ -342,18 +343,17 @@ def cme_create_account(request, post_override=None):
     # this is a good idea
     # TODO: Check password is sane
 
-
-    required_post_vars = ['username', 'email', 'name', 'password', 'terms_of_service', 
-                          'honor_code', 'profession', 'license_number', 'patient_population', 'specialty', 
+    required_post_vars = ['username', 'email', 'name', 'password', 'terms_of_service',
+                          'honor_code', 'profession', 'license_number', 'patient_population', 'specialty',
                           'sub_specialty', 'address_1', 'city', 'state_province', 'postal_code',
                           'country', 'phone_number', 'hear_about_us'
                           ]
     if tos_not_required:
-        required_post_vars =  ['username', 'email', 'name', 'password', 
-                               'honor_code', 'profession', 'license_number', 'patient_population', 'specialty', 
-                               'sub_specialty', 'address_1', 'city', 'state_province', 'postal_code',
-                               'country', 'phone_number', 'hear_about_us'
-                               ]
+        required_post_vars = ['username', 'email', 'name', 'password',
+                              'honor_code', 'profession', 'license_number', 'patient_population', 'specialty',
+                              'sub_specialty', 'address_1', 'city', 'state_province', 'postal_code',
+                              'country', 'phone_number', 'hear_about_us'
+                              ]
 
     for a in required_post_vars:
         if len(post_vars[a]) < 2:
@@ -505,12 +505,12 @@ def _do_cme_create_account(post_vars):
         raise
 
     registration.register(user)
-    
+
     cme_user_profile = CmeUserProfile(user=user)
-    
+
     #UserProfile fields
     cme_user_profile.name = post_vars['name']
-    
+
     #CmeUserProfile fields
     cme_user_profile.profession = post_vars.get('profession')
     cme_user_profile.professional_designation = post_vars.get('professional_designation')
@@ -534,7 +534,7 @@ def _do_cme_create_account(post_vars):
         cme_user_profile.sub_specialty = post_vars.get('sub_specialty_free')
     else:
         cme_user_profile.sub_specialty = post_vars.get('sub_specialty')
-    
+
     cme_user_profile.address_1 = post_vars.get('address_1')
     cme_user_profile.address_2 = post_vars.get('address_2')
     cme_user_profile.city = post_vars.get('city')
@@ -550,9 +550,9 @@ def _do_cme_create_account(post_vars):
     else:
         cme_user_profile.hear_about_us = post_vars.get('hear_about_us')
 
-    cme_user_profile.mailing_list = post_vars.get('mailing_list')
+    cme_user_profile.mailing_list = post_vars.get('mailing_list') if 'mailing_list' in post_vars else 0
 
-    try:    
+    try:
         cme_user_profile.save()
 
     except Exception:
