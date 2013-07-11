@@ -146,11 +146,18 @@ class ContentTest(models.Model):
 
         # instantiate the capa problem so it can grade itself
         capa = self.capa_problem
-        grade_dict = capa.grade_answers(response_dict)
-        return grade_dict
+        try:
+            grade_dict = capa.grade_answers(response_dict)
+            return grade_dict
+        except:
+            return None
 
     def _make_verdict(self, correct_map):
         '''compare what the result of the grading should be with the actual grading'''
+
+        # if there was an error
+        if not correct_map:
+            return False
 
         # this will all change because self.shuold_be will become a dictionary!!
         passing_all = True

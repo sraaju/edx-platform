@@ -90,6 +90,10 @@ class ContentTestTest(ModuleStoreTestCase):
             input_id_base + '_2_1': '4',
             input_id_base + '_2_2': '541098'
         }
+
+        self.response_dict_error = {
+            'anyone lived': 'in a pretty how town'
+        }
         assert self.problem
 
         # Make a collection of ContentTests to test
@@ -115,6 +119,12 @@ class ContentTestTest(ModuleStoreTestCase):
             problem_location=self.problem.location,
             should_be='Correct',
             response_dict=self.response_dict_incorrect
+        )
+
+        self.fail_error = ContentTest.objects.create(
+            problem_location=self.problem.location,
+            should_be='Correct',
+            response_dict=self.response_dict_error
         )
 
 
@@ -250,10 +260,20 @@ class BlackBoxTests(ContentTestTest):
         html = self.pass_correct.get_html_summary()
         self.assertEqual(html, self.HTML)
 
-    def test_get_html_form(self):
+    # def test_get_html_form(self):
+    #     """
+    #     test that html is rendered correctly
+    #     """
+
+    #     html = self.pass_correct.get_html_form()
+    #     self.assertEqual(html, ":)")
+
+    def test_bad_dictionary(self):
         """
-        test that html is rendered correctly
+        Test that a badly formatted dictionary results in error
         """
 
-        html = self.pass_correct.get_html_form()
-        self.assertEqual(html, ":)")
+        test_model = self.fail_error
+        test_model.run()
+
+        self.assertEqual(False, test_model.verdict)

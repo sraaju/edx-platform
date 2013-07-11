@@ -53,17 +53,18 @@ def test_problem(request, action=''):
 
     # switch between the available actions
     if action.lower() == 'delete':
-        #delete stuff
         return delete_test(request)
-    elif action.lower() == 'edit':
-        # edit actions
-        pass
-    elif action.lower() == 'new':
-        return new_test(request)
+
+    elif action.lower() == 'new' or action.lower() == 'edit':
+        return edit_test(request)
+
+    elif action.lower() == 'save':
+        return save_test(request)
 
     elif action.lower() == 'run':
         for test in tests.all():
             test.run()
+        return HttpResponseRedirect('/test_problem/?location='+problem_location)
 
     context = {
         'csrf': csrf(request)['csrf_token'],
@@ -94,24 +95,33 @@ def delete_test(request):
 
 
 def edit_test(request):
-    '''edit/create more tests for a problem'''
-
-
-def new_test(request):
-    '''display the form for creating new test'''
+    """
+    display the form for creating/editing a new/existing test
+    """
 
     # get location
     location = request.GET['location']
 
-    # just instantiate, not placed in database
-    new_test = ContentTest(problem_location=location)
-    capa_problem = new_test.capa_problem
-    html = capa_problem.get_html()
+    # if we are editing an already existing test, we will have an ID
+    id_to_edit = request.GET.get('id_to_edit', '')
+    if id_to_edit:
+        ###
+        # Ensure user owns this contentTest!!
+        ##
+
+        # fetch from database
+        test = ContentTest.objects.get(pk=id_to_edit)
+    else:
+        # just instantiate, not placed in database
+        test = ContentTest(problem_location=location)
+
+    html = test.get_html_form()
 
     context = {
         'csrf': csrf(request)['csrf_token'],
         'problem_html': html,
-        'location': location
+        'location': location,
+        'id_to_edit': id_to_edit
     }
 
     return render_to_response('content_testing/test_new.html', context)
@@ -126,7 +136,7 @@ def save_test(request):
     """
 
     post = request.POST
-    test_id = post.get('test_id', '')
+    test_id = post.get('id_to_edit', '')
     response_dict = dict_slice(post, 'input_')
     should_be = post['should_be']
     location = post['location']
@@ -139,8 +149,14 @@ def save_test(request):
             response_dict=response_dict,
             should_be=should_be)
     else:
-        # Fetch existing content test from database
-        # Update with new infos
-        pass
+        ###
+        # Ensure user owns this contentTest!!
+        ##
+
+        # Update Attributes
+        test = ContentTest.objects.get(pk=test_id)
+        test.should_be = should_be
+        test.response_dict = response_dict
+        test.save()
 
     return HttpResponseRedirect('/test_problem/?location='+location)
