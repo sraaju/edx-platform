@@ -65,12 +65,15 @@ class ContentTest(models.Model):
             kwargs.pop('dont_reset')
 
         # if we have a dictionary
+        # import nose; nose.tools.set_trace()
         if hasattr(self, 'response_dict'):
-            #if it isn't pickled, see if it is new.  If it is, update the children
+            #if it isn't pickled, pickle it.
             if not(isinstance(self.response_dict, basestring)):
-                if pickle.dumps(self.response_dict) != self._old_response_dict:
-                    self._update_dictionary(self.response_dict)
-                    self.response_dict = pickle.dumps(self.response_dict)
+                # pickle it regardless
+                self.response_dict = pickle.dumps(self.response_dict)
+                # if it is new, update children
+                if self.response_dict != self._old_response_dict:
+                    self._update_dictionary(pickle.loads(self.response_dict))
 
         # save it as normal
         super(ContentTest, self).save(*arg, **kwargs)
@@ -116,8 +119,7 @@ class ContentTest(models.Model):
         # THIS FUNCTION IS BASICALLY A COMPLETE HACK
 
         # html with the inputs blank
-        blank_html = self.capa_problem.get_html()
-        html_form = blank_html
+        html_form = self.capa_problem.get_html()
 
         # if we have a response dict, fill in the html
         if hasattr(self, 'response_dict'):
@@ -127,7 +129,8 @@ class ContentTest(models.Model):
             if isinstance(resp_dict, basestring):
                 resp_dict = pickle.loads(resp_dict)
 
-            # go through filling in the html
+            # go through filling in the html with the stored values so the form
+            # has the correct defaults
             for id_string in resp_dict:
                 html_form = html_form.replace(
                     "id=\"input_"+id_string+"\"",
@@ -135,6 +138,21 @@ class ContentTest(models.Model):
 
             html_form = html_form.replace("value=\"\"", "")
 
+        # add correctness boxes
+        context = {
+            "check_correct": "checked=\"True\"",
+            "check_incorrect": ""
+        }
+
+        if hasattr(self, 'should_be'):
+            if self.should_be.lower() == "incorrect":
+                context = {
+                    "check_correct": "",
+                    "check_incorrect": "checked=\"True\""
+                }
+
+        buttons = render_to_string('content_testing/form_bottom.html', context)
+        html_form = html_form + buttons
         return html_form
 
 #======= Private Methods =======#

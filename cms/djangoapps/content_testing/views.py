@@ -10,27 +10,26 @@ from django.views.decorators.csrf import csrf_protect
 from django.core.context_processors import csrf
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-
+from django.core.exceptions import PermissionDenied
+from contentstore.views.access import has_access
 
 from xmodule_modifiers import replace_static_urls, wrap_xmodule
 from mitxmako.shortcuts import render_to_response
 
-from contentstore.views.preview import get_preview_module, get_module_previews
-
 
 def dict_slice(d, s):
-    '''returns dict of keays that start with "s" (and removing "s" from the keys)'''
+    '''returns dict of that keys that start with "s" (and removing "s" from the keys)'''
     d_slice = {}
     # commented out since it breaks pylint
-    # return {k: v for k, v in d.iteritems() if k.startswith(s)}
+    # return {k.replace(s, ''): v for k, v in d.iteritems() if k.startswith(s)}
     for k, v in d.iteritems():
         if k.startswith(s):
             d_slice.update([(k.replace(s, ''), v)])
     return d_slice
 
 
-# @login_required
-# @ensure_csrf_cookie
+@login_required
+@ensure_csrf_cookie
 def test_problem(request, action=''):
     '''page showing summary of tests for this problem'''
 
@@ -38,10 +37,9 @@ def test_problem(request, action=''):
     problem_location = request.GET['location']
     location = Location(problem_location)
 
-    #Check user has access to location
-    #
-    #
-    #########
+    # check that logged in user has permissions to this item
+    if not has_access(request.user, location):
+        raise PermissionDenied()
 
     try:
         modulestore().get_item(location)
@@ -105,18 +103,15 @@ def edit_test(request):
     # if we are editing an already existing test, we will have an ID
     id_to_edit = request.GET.get('id_to_edit', '')
     if id_to_edit:
-        ###
-        # Ensure user owns this contentTest!!
-        ##
 
-        # fetch from database
+        # fetch from database and authenticate
         test = ContentTest.objects.get(pk=id_to_edit)
+        if not has_access(request.user, Location(test.problem_location)):
+            raise PermissionDenied
     else:
-        # just instantiate, not placed in database
         test = ContentTest(problem_location=location)
 
     html = test.get_html_form()
-
     context = {
         'csrf': csrf(request)['csrf_token'],
         'problem_html': html,
@@ -124,15 +119,13 @@ def edit_test(request):
         'id_to_edit': id_to_edit
     }
 
-    return render_to_response('content_testing/test_new.html', context)
+    return render_to_response('content_testing/edit_test.html', context)
 
 
-# @login_required
-# @ensure_csrf_cookie
 def save_test(request):
     """
     save a test.  This can be a new test, or an update to an existing one.
-    If it is a new test, there will be no test_id in the POST data
+    If it is a new test, there will be no `id_to_edit` in the POST data
     """
 
     post = request.POST
@@ -149,12 +142,14 @@ def save_test(request):
             response_dict=response_dict,
             should_be=should_be)
     else:
-        ###
-        # Ensure user owns this contentTest!!
-        ##
-
-        # Update Attributes
+        # Fetch from database
         test = ContentTest.objects.get(pk=test_id)
+
+        #ensure user owns this test
+        if not has_access(request.user, Location(test.problem_location)):
+            raise PermissionDenied
+
+        # update attributes
         test.should_be = should_be
         test.response_dict = response_dict
         test.save()

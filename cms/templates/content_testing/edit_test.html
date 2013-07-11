@@ -1,0 +1,16 @@
+<%inherit file="../base.html" />
+<%namespace name='static' file='../static_content.html'/>
+
+<%block name="title">Create A Problem Test</%block>
+
+<%block name='content'>
+
+<form id="create_test" action=${"/test_problem/save/?location="+location} method="post">
+  <input type="hidden" name="csrfmiddlewaretoken" value=${csrf} >
+  ${problem_html}
+  <input type="hidden" name="location" value=${location}>
+  <input type="hidden" name="id_to_edit" value=${id_to_edit}>
+  <input type="submit" value="save">
+  <a href=${"/test_problem/?location="+location}>cancle</a>
+</form>
+</%block>

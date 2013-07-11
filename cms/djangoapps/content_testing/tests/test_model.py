@@ -9,6 +9,8 @@ from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.django import modulestore
 from content_testing.models import ContentTest, Response, Input
+from capa.tests.response_xml_factory import CustomResponseXMLFactory
+import pickle
 
 
 class ContentTestTest(ModuleStoreTestCase):
@@ -28,7 +30,7 @@ class ContentTestTest(ModuleStoreTestCase):
         return is_prime(a1)""").strip()
     NUM_INPUTS = 2  # tied to script
 
-    HTML = dedent("""
+    HTML_SUMMARY = dedent("""
     <table>
         <tr>
             <td>
@@ -57,13 +59,27 @@ class ContentTestTest(ModuleStoreTestCase):
         <tr>
     </table>""").strip()
 
+    HTML_FORM = """<div><p/><span><section id="inputtype_i4x-MITx-999-problem-Problem_4_2_1" class=" capa_inputtype "><div class="unanswered " id="status_i4x-MITx-999-problem-Problem_4_2_1"><input type="text" name="input_i4x-MITx-999-problem-Problem_4_2_1" id="input_i4x-MITx-999-problem-Problem_4_2_1" value = "5" aria-describedby="answer_i4x-MITx-999-problem-Problem_4_2_1" /><p class="status" aria-describedby="input_i4x-MITx-999-problem-Problem_4_2_1">
+        unanswered
+      </p><p id="answer_i4x-MITx-999-problem-Problem_4_2_1" class="answer"/></div></section><section id="inputtype_i4x-MITx-999-problem-Problem_4_2_2" class=" capa_inputtype "><div class="unanswered " id="status_i4x-MITx-999-problem-Problem_4_2_2"><input type="text" name="input_i4x-MITx-999-problem-Problem_4_2_2" id="input_i4x-MITx-999-problem-Problem_4_2_2" value = "174440041" aria-describedby="answer_i4x-MITx-999-problem-Problem_4_2_2" /><p class="status" aria-describedby="input_i4x-MITx-999-problem-Problem_4_2_2">
+        unanswered
+      </p><p id="answer_i4x-MITx-999-problem-Problem_4_2_2" class="answer"/></div></section></span></div><br/>
+  This Should be marked as:
+  Correct: <input type="radio" name="should_be" value="Correct" id="correct_box" checked="True">
+  Incorrect: <input type="radio" name="should_be" value="Incorrect" id="incorrect_box" >
+<br>"""
+
+    VERDICT_PASS = "Pass"
+    VERDICT_FAIL = "Fail"
+    VERDICT_ERROR = "ERROR"
+    VERDICT_NONE = "Not Run"
+
     def setUp(self):
         #course in which to put the problem
         self.course = CourseFactory.create()
         assert self.course
 
         #make the problem
-        from capa.tests.response_xml_factory import CustomResponseXMLFactory
         custom_template = "i4x://edx/templates/problem/Custom_Python-Evaluated_Input"
 
         #change the script if 1
@@ -252,21 +268,35 @@ class BlackBoxTests(ContentTestTest):
         # assert that the verdict is now False
         self.assertEqual(False, test_model.verdict)
 
+    def test_nochange_dict(self):
+        """
+        test that updating the dictionary without changing it doesn't break anything
+        """
+        test_model = self.pass_correct
+        test_model.response_dict = self.response_dict_correct
+        test_model.save()
+
+        # get fresh from db
+        new_model = ContentTest.objects.get(pk=test_model.pk)
+
+        self.assertEqual(pickle.loads(new_model.response_dict), self.response_dict_correct)
+
     def test_get_html_summary(self):
         """
         test that html is rendered correctly
         """
 
         html = self.pass_correct.get_html_summary()
-        self.assertEqual(html, self.HTML)
+        self.assertEqual(html, self.HTML_SUMMARY)
 
-    # def test_get_html_form(self):
-    #     """
-    #     test that html is rendered correctly
-    #     """
+    def test_get_html_form(self):
+        """
+        test that html is rendered correctly
+        """
 
-    #     html = self.pass_correct.get_html_form()
-    #     self.assertEqual(html, ":)")
+        html = self.pass_correct.get_html_form()
+
+        self.assertEqual(html, self.HTML_FORM)
 
     def test_bad_dictionary(self):
         """
