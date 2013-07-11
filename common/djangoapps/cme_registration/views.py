@@ -7,6 +7,8 @@ from django.core.validators import validate_email, validate_slug, ValidationErro
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
+from django.shortcuts import redirect
+from django.core.urlresolvers import reverse
 
 from student.models import (Registration, UserProfile)
 from cme_registration.models import CmeUserProfile
@@ -179,7 +181,7 @@ def register_user(request, extra_context={}):
                                                   ('Dermatology', 'Dermatology'),
                                                   ('Endocrinology, Gerontology & Metabolism', 'Endocrinology, Gerontology & Metabolism'),
                                                   ('Gastroenterology & Hepatology', 'Gastroenterology & Hepatology'),
-                                                  ('Hematology', 'Hematology', 'Hematology', 'Hematology'),
+                                                  ('Hematology', 'Hematology'),
                                                   ('Immunology & Rheumatology', 'Immunology & Rheumatology'),
                                                   ('Infectious Disease', 'Infectious Disease'),
                                                   ('Nephrology', 'Nephrology'),
@@ -307,6 +309,9 @@ def cme_create_account(request, post_override=None):
         post_vars = dict(post_vars.items())
         post_vars.update(dict(email=email, name=name, password=password))
         log.info('In create_account with external_auth: post_vars = %s' % post_vars)
+
+    print "***********"
+    print post_vars
 
     # Confirm we have a properly formed request
     for a in ['username', 'email', 'password', 'name']:
@@ -516,7 +521,7 @@ def _do_cme_create_account(post_vars):
     cme_user_profile.professional_designation = post_vars.get('professional_designation')
     cme_user_profile.license_number = post_vars.get('license_number')
     cme_user_profile.organization = post_vars.get('organization')
-    cme_user_profile.stanford_affiliated = post_vars.get('stanford_affiliated')
+    cme_user_profile.stanford_affiliated = True if post_vars.get('stanford_affiliated') == '1' else False
 
     if post_vars.get('how_stanford_affiliated') == 'Other, please enter:':
         cme_user_profile.how_stanford_affiliated = post_vars.get('how_stanford_affiliated_free')

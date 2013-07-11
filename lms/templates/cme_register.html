@@ -36,6 +36,9 @@
       }).blur(function() {
         $("label").parent().removeClass("is-focused");
       });
+      
+      // display dependent form sections
+      
 
     });
 
@@ -109,7 +112,7 @@
       </p>
 
       <fieldset class="group group-form group-form-requiredinformation">
-        <legend class="sr">Required Information</legend>
+        <h3><strong>Required Information</strong></h3>
 
         % if has_extauth_info is UNDEFINED:
 
@@ -174,7 +177,7 @@
       </fieldset>
 
       <fieldset class="group group-form group-form-secondary group-form-personalinformation">
-       <legend class="sr">Professional Information</legend>
+       <h3><strong>Professional Information</strong></h3>
     
        <ol class="list-input">
           <li class="field required text" id="field-profession">
@@ -206,7 +209,7 @@
       </fieldset>
       
       <fieldset class="group group-form group-form-secondary group-form-organizationinformation">
-       <legend class="sr">Organization Information</legend>
+       <h3><strong>Organization Information</strong></H3>
        
        <ol class="list-input">
          <li class="field select" id="organization">
@@ -216,10 +219,10 @@
        
          <li class="field required" id="stanford_affiliated">
            <label for="stanford_affiliated">Are you affiliated with Stanford?</label>
-           <li>
-           <input id="stanford_affiliated" type="radio" name="stanford_affiliated" /><label for="stanford_affiliated_yes">Yes</label>
-           <input id="stanford_affiliated" type="radio" name="stanford_affiliated" /><label for="stanford_affiliated_no">No</label>
-           </li>
+           <p>
+                <span id="stanford_affiliated_yes_label"><input id="stanford_affiliated_yes" type="radio" value="1" name="stanford_affiliated" aria-labelledby="stanford_affiliated_yes_label" /> Yes</span>
+                <span id="stanford_affiliated_no_label"><input id="stanford_affiliated_no" type="radio" value="0" name="stanford_affiliated" aria-labelledby="stanford_affiliated_no_label" /> No</span>
+           </p>
          </li>
        
          <li class="field select" id="how_stanford_affiliated">
@@ -230,11 +233,9 @@
                <option value="${code}">${how_stanford_affiliated}</option>
              %endfor
            </select>
-         </li>
-       
-         <li class="field select" id="how_stanford_affililiated_free">
-            <label for="how_stanford_affililiated_free">How are you affiliated with Stanford?</label>
-            <input id="how_stanford_affililiated_free" type="text" name="how_stanford_affiliated_free" />
+           <div id="how_stanford_affililiated_free_container">
+                <input id="how_stanford_affililiated_free" type="text" name="how_stanford_affiliated_free" title="Please enter how you are affiliated with Stanford here." />
+           </div>
          </li>
 
        </ol>
@@ -264,6 +265,26 @@
           </select>
         </li>
         
+        <li class="field required" id="specialty">
+          <label for="specialty">Specialty</label>
+          <select id="specialty" name="specialty">
+            <option value="">--</option>
+            %for code, specialty in specialty_choices['Pediatric']:
+              <option value="${code}">${specialty}</option>
+            %endfor
+          </select>
+        </li>        
+        
+        <li class="field required" id="specialty">
+          <label for="specialty">Specialty</label>
+          <select id="specialty" name="specialty">
+            <option value="">--</option>
+            %for code, specialty in specialty_choices['Both (Adult/Pediatric)']:
+              <option value="${code}">${specialty}</option>
+            %endfor
+          </select>
+        </li>
+        
          <li class="field select" id="specialty_free">
             <label for="specialty_free">Specialty</label>
             <input id="specialty_free" type="text" name="specialty_free" />
@@ -274,6 +295,86 @@
           <select id="sub_specialty" name="sub_specialty">
             <option value="">--</option>
             %for code, sub_specialty in sub_specialty_choices['Cardiology']:
+              <option value="${code}">${sub_specialty}</option>
+            %endfor
+          </select>
+        </li>
+        
+        <li class="field required" id="sub_specialty">
+          <label for="sub_specialty">Sub-Specialty</label>
+          <select id="sub_specialty" name="sub_specialty">
+            <option value="">--</option>
+            %for code, sub_specialty in sub_specialty_choices['Internal Medicine']:
+              <option value="${code}">${sub_specialty}</option>
+            %endfor
+          </select>
+        </li>
+        
+        <li class="field required" id="sub_specialty">
+          <label for="sub_specialty">Sub-Specialty</label>
+          <select id="sub_specialty" name="sub_specialty">
+            <option value="">--</option>
+            %for code, sub_specialty in sub_specialty_choices['Obstetrics & Gynecology']:
+              <option value="${code}">${sub_specialty}</option>
+            %endfor
+          </select>
+        </li>
+        
+        <li class="field required" id="sub_specialty">
+          <label for="sub_specialty">Sub-Specialty</label>
+          <select id="sub_specialty" name="sub_specialty">
+            <option value="">--</option>
+            %for code, sub_specialty in sub_specialty_choices['Oncology']:
+              <option value="${code}">${sub_specialty}</option>
+            %endfor
+          </select>
+        </li>
+        
+        <li class="field required" id="sub_specialty">
+          <label for="sub_specialty">Sub-Specialty</label>
+          <select id="sub_specialty" name="sub_specialty">
+            <option value="">--</option>
+            %for code, sub_specialty in sub_specialty_choices['Palliative Care']:
+              <option value="${code}">${sub_specialty}</option>
+            %endfor
+          </select>
+        </li>
+        
+        <li class="field required" id="sub_specialty">
+          <label for="sub_specialty">Sub-Specialty</label>
+          <select id="sub_specialty" name="sub_specialty">
+            <option value="">--</option>
+            %for code, sub_specialty in sub_specialty_choices['Pediatrics']:
+              <option value="${code}">${sub_specialty}</option>
+            %endfor
+          </select>
+        </li>
+        
+        <li class="field required" id="sub_specialty">
+          <label for="sub_specialty">Sub-Specialty</label>
+          <select id="sub_specialty" name="sub_specialty">
+            <option value="">--</option>
+            %for code, sub_specialty in sub_specialty_choices['Pulmonology']:
+              <option value="${code}">${sub_specialty}</option>
+            %endfor
+          </select>
+        </li>
+        
+        <li class="field required" id="sub_specialty">
+          <label for="sub_specialty">Sub-Specialty</label>
+          <select id="sub_specialty" name="sub_specialty">
+            <option value="">--</option>
+            %for code, sub_specialty in sub_specialty_choices['Surgery']:
+              <option value="${code}">${sub_specialty}</option>
+            %endfor
+          </select>
+        </li>
+        
+        <li class="field required" id="sub_specialty">
+          <label for="sub_specialty">Sub-Specialty</label>
+          <select id="sub_specialty" name="sub_specialty">
+            <option value="">--</option>
+            %for code, sub_specialty in sub_specialty_choices['Transplant']:
               <option value="${code}">${sub_specialty}</option>
             %endfor
           </select>
