@@ -38,7 +38,21 @@
       });
       
       // display dependent form sections
+      $('input.controller-show').click(function() {
+        $(this).parent().siblings('.controlled').slideDown('fast');
+      });
       
+      $('input.controller-hide').click(function() {
+        $(this).parent().siblings('.controlled').slideUp('fast');
+      });
+      
+      $('select.controller').change(function() {
+        if ($(this).children("option:selected").hasClass('controller-show')) {
+          $(this).siblings('.controlled').slideDown('fast');
+        } else {
+          $(this).siblings('.controlled').slideUp('fast');
+        }
+      });
 
     });
 
@@ -112,6 +126,7 @@
       </p>
 
       <fieldset class="group group-form group-form-requiredinformation">
+        <hr />
         <h3><strong>Required Information</strong></h3>
 
         % if has_extauth_info is UNDEFINED:
@@ -177,6 +192,7 @@
       </fieldset>
 
       <fieldset class="group group-form group-form-secondary group-form-personalinformation">
+       <hr />
        <h3><strong>Professional Information</strong></h3>
     
        <ol class="list-input">
@@ -209,7 +225,8 @@
       </fieldset>
       
       <fieldset class="group group-form group-form-secondary group-form-organizationinformation">
-       <h3><strong>Organization Information</strong></H3>
+       <hr />
+       <h3><strong>Organization Information</strong></h3>
        
        <ol class="list-input">
          <li class="field select" id="organization">
@@ -219,22 +236,28 @@
        
          <li class="field required" id="stanford_affiliated">
            <label for="stanford_affiliated">Are you affiliated with Stanford?</label>
-           <p>
-                <span id="stanford_affiliated_yes_label"><input id="stanford_affiliated_yes" type="radio" value="1" name="stanford_affiliated" aria-labelledby="stanford_affiliated_yes_label" /> Yes</span>
-                <span id="stanford_affiliated_no_label"><input id="stanford_affiliated_no" type="radio" value="0" name="stanford_affiliated" aria-labelledby="stanford_affiliated_no_label" /> No</span>
-           </p>
-         </li>
-       
-         <li class="field select" id="how_stanford_affiliated">
-           <label for="how_stanford_affiliated">How are you affiliated with Stanford?</label>
-           <select id="how_stanford_affiliated" name="how_stanford_affiliated">
-             <option value="">--</option>
-             %for code, how_stanford_affiliated in CmeUserProfile.HOW_STANFORD_AFFILIATED_CHOICES:
-               <option value="${code}">${how_stanford_affiliated}</option>
-             %endfor
-           </select>
-           <div id="how_stanford_affililiated_free_container">
-                <input id="how_stanford_affililiated_free" type="text" name="how_stanford_affiliated_free" title="Please enter how you are affiliated with Stanford here." />
+           <div class="field select radio " id="is_stanford_affiliated">
+              <span><input id="stanford_affiliated_yes" class="controller-show" type="radio" value="1" name="stanford_affiliated" aria-label="Yes" /> Yes</span>
+              <span><input id="stanford_affiliated_no" class="controller-hide" type="radio" value="0" name="stanford_affiliated" aria-label="No" style="margin-left: 50px;" /> No</span>
+              
+              <div class="field select controlled" id="how_stanford_affiliated" style="display: none;">
+                <br />
+                <label for="how_stanford_affiliated">How are you affiliated with Stanford?</label>
+                <select class="controller" id="how_stanford_affiliated" name="how_stanford_affiliated">
+                  <option value="">--</option>
+                  % for code, how_stanford_affiliated in CmeUserProfile.HOW_STANFORD_AFFILIATED_CHOICES:
+                    % if code == "Other, please enter:":
+                      <option value="${code}" class="controller-show">${how_stanford_affiliated}</option>
+                    % else:
+                      <option value="${code}" class="controller-hide">${how_stanford_affiliated}</option>
+                    % endif
+                  % endfor
+                </select>
+                <div class="field controlled" id="how_stanford_affililiated_free_container" style="display: none;">
+                  <br />
+                  <input id="how_stanford_affililiated_free" type="text" name="how_stanford_affiliated_free" title="Please enter how you are affiliated with Stanford here." />
+                </div>
+              </div>
            </div>
          </li>
 
@@ -242,7 +265,8 @@
       </fieldset> 
 
       <fieldset class="group group-form group-form-secondary group-form-patientinformation">
-       <legend class="sr">Patient Information</legend>
+       <hr />
+       <h3><strong>Patient Information</strong></h3>
        
        <ol class="list-input">
         <li class="field required" id="patient_population">
@@ -390,7 +414,9 @@
         
 
       <fieldset class="group group-form group-form-secondary group-form-personalinformation">
-        <legend class="sr">Optional Personal Information</legend>
+        <hr />
+        <h3><strong>Optional Personal Information</strong></h3>
+        
 
         <ol class="list-input">
          
@@ -451,17 +477,20 @@
         
          <li class="field required" id="hear_about_us">
            <label for="hear_about_us">How did you hear about us?</label>
-           <select id="hear_about_us" name="hear_about_us">
+           <select class="controller" id="hear_about_us" name="hear_about_us">
              <option value="">--</option>
              %for code, about_us in CmeUserProfile.HEAR_ABOUT_US_CHOICES:
-               <option value="${code}">${about_us}</option>
-             %endfor
+                % if code == "Other, please enter:":
+                  <option value="${code}" class="controller-show">${about_us}</option>
+                % else:
+                  <option value="${code}" class="controller-hide">${about_us}</option>
+                % endif
+              %endfor
            </select>
-         </li>
-        
-         <li class="field select" id="hear_about_us_free">
-           <label for="hear_about_us_free">How did you hear about us?</label>
-           <input id="hear_about_us_free" type="text" name="hear_about_us_free" />
+           <div class="field controlled" id="hear_about_us_free" style="display: none;">
+              <br />
+              <input id="hear_about_us_free" type="text" name="hear_about_us_free" title="Please enter how you heard about us here." />
+           </div>
          </li>
         
          <div class="field select checkbox" id="mailing_list">
@@ -473,6 +502,7 @@
       </fieldset>
 
       <fieldset class="group group-form group-form-accountacknowledgements">
+        <hr />
         <legend class="sr">Account Acknowledgements</legend>
 
         <ol class="list-input">

@@ -34,7 +34,7 @@ class CmeUserProfile(UserProfile):
                                        ('Stanford Hospital & Clinics', 'Stanford Hospital & Clinics'),
                                        ('Stanford University', 'Stanford University'),
                                        ('University Healthcare Alliance (UHA)', 'University Healthcare Alliance (UHA)'),
-                                       ('Other, please enter:', 'Other, please enter:'))
+                                       ('Other', 'Other, please enter:'))
     how_stanford_affiliated = models.CharField(blank=True, null=True, max_length=255, choices=HOW_STANFORD_AFFILIATED_CHOICES)
 
     PATIENT_POPULATION_CHOICES = (('Adult', 'Adult'),
@@ -362,6 +362,6 @@ class CmeUserProfile(UserProfile):
                              ('Email Announcement', 'Email Announcement'),
                              ('SCCME Web site', 'SCCME Web site'),
                              ('Friend/Colleague', 'Friend/Colleague'),
-                             ('Other (free form)', 'Other (free form)'))
+                             ('Other', 'Other, please enter:'))
     hear_about_us = models.CharField(blank=True, null=True, max_length=255)
     mailing_list = models.BooleanField(default=0)

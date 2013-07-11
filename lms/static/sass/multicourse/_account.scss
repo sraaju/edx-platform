@@ -305,9 +305,9 @@
       }
 
       // types - checkboxes/radio buttons
-      &.checkbox {
+      &.checkbox, .radio {
 
-        input[type="checkbox"] {
+        input[type="checkbox"], input[type="radio"] {
           display: inline-block;
           width: auto;
           margin-right: ($baseline/4);
