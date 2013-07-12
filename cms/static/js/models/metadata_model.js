@@ -110,4 +110,5 @@ CMS.Models.MetadataCollection = Backbone.Collection.extend({
 CMS.Models.Metadata.SELECT_TYPE = "Select";
 CMS.Models.Metadata.INTEGER_TYPE = "Integer";
 CMS.Models.Metadata.FLOAT_TYPE = "Float";
+CMS.Models.Metadata.LIST_TYPE = "List";
 CMS.Models.Metadata.GENERIC_TYPE = "Generic";

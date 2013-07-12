@@ -2,8 +2,9 @@
 """Video xmodule tests in mongo."""
 
 from . import BaseTestXmodule
-from .test_videoalpha_xml import SOURCE_XML
+from .test_videoalpha_xml import SOURCE_XML, VIDEO_SOURCES, YOUTUBE_SOURCES
 from django.conf import settings
+from xmodule.videoalpha_module import VideoAlphaDescriptor
 
 
 class TestVideo(BaseTestXmodule):
@@ -14,6 +15,8 @@ class TestVideo(BaseTestXmodule):
     MODEL_DATA = {
         'data': DATA
     }
+
+    descriptor_class = VideoAlphaDescriptor
 
     def test_handle_ajax_dispatch(self):
         responses = {
@@ -33,10 +36,10 @@ class TestVideo(BaseTestXmodule):
 
     def test_videoalpha_constructor(self):
         """Make sure that all parameters extracted correclty from xml"""
-
         # `get_html` return only context, cause we
         # overwrite `system.render_template`
         context = self.item_module.get_html()
+
         expected_context = {
             'data_dir': getattr(self, 'data_dir', None),
             'caption_asset_path': '/c4x/MITx/999/asset/subs_',
@@ -44,11 +47,11 @@ class TestVideo(BaseTestXmodule):
             'display_name': self.item_module.display_name_with_default,
             'end': self.item_module.end_time,
             'id': self.item_module.location.html_id(),
-            'sources': self.item_module.sources,
+            'sources': VIDEO_SOURCES,
             'start': self.item_module.start_time,
             'sub': self.item_module.sub,
             'track': self.item_module.track,
-            'youtube_streams': self.item_module.youtube_streams,
+            'youtube_streams': YOUTUBE_SOURCES,
             'autoplay': settings.MITX_FEATURES.get('AUTOPLAY_VIDEOS', True)
         }
         self.assertDictEqual(context, expected_context)
@@ -81,6 +84,7 @@ class TestVideoNonYouTube(TestVideo):
         # `get_html` return only context, cause we
         # overwrite `system.render_template`
         context = self.item_module.get_html()
+
         expected_context = {
             'data_dir': getattr(self, 'data_dir', None),
             'caption_asset_path': '/c4x/MITx/999/asset/subs_',
@@ -88,11 +92,14 @@ class TestVideoNonYouTube(TestVideo):
             'display_name': self.item_module.display_name_with_default,
             'end': self.item_module.end_time,
             'id': self.item_module.location.html_id(),
-            'sources': self.item_module.sources,
+            'sources': VIDEO_SOURCES,
             'start': self.item_module.start_time,
             'sub': self.item_module.sub,
             'track': self.item_module.track,
-            'youtube_streams': '',
+            'youtube_streams': {'youtube-id-0-75': '',
+                                'youtube-id-1-0': '',
+                                'youtube-id-1-25': '',
+                                'youtube-id-1-5': ''},
             'autoplay': settings.MITX_FEATURES.get('AUTOPLAY_VIDEOS', True)
         }
         self.assertDictEqual(context, expected_context)

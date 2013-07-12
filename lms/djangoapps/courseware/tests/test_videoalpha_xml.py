@@ -16,14 +16,12 @@ course, section, subsection, unit, etc.
 import json
 import unittest
 from mock import Mock
-from lxml import etree
 
 from django.conf import settings
 
-from xmodule.videoalpha_module import VideoAlphaDescriptor, VideoAlphaModule
+from xmodule.videoalpha_module import VideoAlphaModule, VideoAlphaDescriptor
 from xmodule.modulestore import Location
 from xmodule.tests import get_test_system
-from xmodule.tests import LogicTest
 
 
 SOURCE_XML = """
@@ -39,6 +37,19 @@ SOURCE_XML = """
         <source src=".../mit-3091x/M-3091X-FA12-L21-3_100.ogv"/>
     </videoalpha>
 """
+
+VIDEO_SOURCES = {
+    'mp4': '.../mit-3091x/M-3091X-FA12-L21-3_100.mp4',
+    'webm': '.../mit-3091x/M-3091X-FA12-L21-3_100.webm',
+    'ogv': '.../mit-3091x/M-3091X-FA12-L21-3_100.ogv',
+}
+
+YOUTUBE_SOURCES = {
+        'youtube-id-0-75': 'jNCf2gIqpeE',
+        'youtube-id-1-0': 'ZwkTiUPN0mg',
+        'youtube-id-1-25': 'rsq9auxASqI',
+        'youtube-id-1-5': 'kMyNdzVHHgg'
+}
 
 
 class VideoAlphaFactory(object):
@@ -56,58 +67,28 @@ class VideoAlphaFactory(object):
                              "SampleProblem1"])
         model_data = {'data': VideoAlphaFactory.sample_problem_xml_youtube}
 
-        descriptor = Mock(weight="1")
-
         system = get_test_system()
         system.render_template = lambda template, context: context
+
+        descriptor = VideoAlphaDescriptor(system, model_data)
+
         VideoAlphaModule.location = location
         module = VideoAlphaModule(system, descriptor, model_data)
 
         return module
 
 
-class VideoAlphaModuleTest(LogicTest):
-    """Tests for logic of VideoAlpha Xmodule."""
-
-    descriptor_class = VideoAlphaDescriptor
-
-    raw_model_data = {
-        'data': '<videoalpha />'
-    }
-
-    def test_get_timeframe_no_parameters(self):
-        xmltree = etree.fromstring('<videoalpha>test</videoalpha>')
-        output = self.xmodule.get_timeframe(xmltree)
-        self.assertEqual(output, ('', ''))
-
-    def test_get_timeframe_with_one_parameter(self):
-        xmltree = etree.fromstring(
-            '<videoalpha start_time="00:04:07">test</videoalpha>'
-        )
-        output = self.xmodule.get_timeframe(xmltree)
-        self.assertEqual(output, (247, ''))
-
-    def test_get_timeframe_with_two_parameters(self):
-        xmltree = etree.fromstring(
-            '''<videoalpha
-                    start_time="00:04:07"
-                    end_time="13:04:39"
-                >test</videoalpha>'''
-        )
-        output = self.xmodule.get_timeframe(xmltree)
-        self.assertEqual(output, (247, 47079))
-
-
 class VideoAlphaModuleUnitTest(unittest.TestCase):
     """Unit tests for VideoAlpha Xmodule."""
 
-    def test_videoalpha_constructor(self):
+    def test_videoalpha_get_html(self):
         """Make sure that all parameters extracted correclty from xml"""
         module = VideoAlphaFactory.create()
 
         # `get_html` return only context, cause we
         # overwrite `system.render_template`
         context = module.get_html()
+
         expected_context = {
             'caption_asset_path': '/static/subs/',
             'sub': module.sub,
@@ -117,8 +98,8 @@ class VideoAlphaModuleUnitTest(unittest.TestCase):
             'start': module.start_time,
             'id': module.location.html_id(),
             'show_captions': module.show_captions,
-            'sources': module.sources,
-            'youtube_streams': module.youtube_streams,
+            'sources': VIDEO_SOURCES,
+            'youtube_streams': YOUTUBE_SOURCES,
             'track': module.track,
             'autoplay': settings.MITX_FEATURES.get('AUTOPLAY_VIDEOS', True)
         }

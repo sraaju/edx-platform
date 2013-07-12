@@ -103,7 +103,7 @@ function (VideoPlayer) {
         };
 
         // Try to parse YouTube stream ID's. If
-        if (this.parseYoutubeStreams(this.config.youtubeStreams)) {
+        if (this.parseYoutubeStreams()) {
             this.videoType = 'youtube';
 
             this.fetchMetadata();
@@ -214,26 +214,40 @@ function (VideoPlayer) {
     //     @return
     //         false: We don't have YouTube video IDs to work with; most likely we have HTML5 video sources.
     //         true: Parsing of YouTube video IDs went OK, and we can proceed onwards to play YouTube videos.
-    function parseYoutubeStreams(youtubeStreams) {
-        var _this;
-
-        if (typeof youtubeStreams === 'undefined' || youtubeStreams.length === 0) {
-            return false;
-        }
-
-        _this = this;
+    function parseYoutubeStreams() {
         this.videos = {};
+        if (this.el.data('youtube-id-0-75')) {
+            this.videos['0.75'] = this.el.data('youtube-id-0-75');
+        }
+        if (this.el.data('youtube-id-1-0')) {
+            this.videos['1.0'] = this.el.data('youtube-id-1-0');
+        }
+        if (this.el.data('youtube-id-1-25')) {
+            this.videos['1.25'] = this.el.data('youtube-id-1-25');
+        }
+        if (this.el.data('youtube-id-1-5')) {
+            return this.videos['1.50'] = this.el.data('youtube-id-1-5');
+        }
+        return !_.isEmpty(this.videos);
+        // var _this;
 
-        $.each(youtubeStreams.split(/,/), function(index, video) {
-            var speed;
+        // if (typeof youtubeStreams === 'undefined' || youtubeStreams.length === 0) {
+        //     return false;
+        // }
 
-            video = video.split(/:/);
-            speed = parseFloat(video[0]).toFixed(2).replace(/\.00$/, '.0');
+        // _this = this;
+        // this.videos = {};
 
-            _this.videos[speed] = video[1];
-        });
+        // $.each(youtubeStreams.split(/,/), function(index, video) {
+        //     var speed;
 
-        return true;
+        //     video = video.split(/:/);
+        //     speed = parseFloat(video[0]).toFixed(2).replace(/\.00$/, '.0');
+
+        //     _this.videos[speed] = video[1];
+        // });
+
+        // return true;
     }
 
     // function parseVideoSources(, mp4Source, webmSource, oggSource)

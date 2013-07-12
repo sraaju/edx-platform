@@ -2,6 +2,7 @@
 """Video xmodule tests in mongo."""
 
 from . import BaseTestXmodule
+from xmodule.video_module import VideoDescriptor
 
 
 class TestVideo(BaseTestXmodule):
@@ -9,6 +10,7 @@ class TestVideo(BaseTestXmodule):
 
     TEMPLATE_NAME = "i4x://edx/templates/video/default"
     DATA = '<video  youtube="0.75:JMD_ifUUfsU,1.0:OEoXaMPEzfM,1.25:AKqURZnYqpk,1.50:DYpADpL7jAY"/>'
+    descriptor_class = VideoDescriptor
 
     def test_handle_ajax_dispatch(self):
         responses = {

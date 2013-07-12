@@ -7,7 +7,9 @@
       class="videoalpha"
 
   % if not settings.MITX_FEATURES['STUB_VIDEO_FOR_TESTING']:
-  data-streams="${youtube_streams}"
+  % for speed, youtube_id in youtube_streams.items():
+  data-${speed}="${youtube_id}"
+  % endfor
   % endif
 
   ${'data-sub="{}"'.format(sub) if sub else ''}
