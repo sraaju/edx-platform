@@ -28,13 +28,32 @@ def dict_slice(d, s):
     return d_slice
 
 
+def secure_fetch(user, model_id):
+    """
+    fetch model from database and ensure user owns it
+    """
+
+    # Fetch from database
+    test = ContentTest.objects.get(pk=model_id)
+
+    #ensure user owns this test
+    if not has_access(user, Location(test.problem_location)):
+        raise PermissionDenied
+
+    return test
+
+
 @login_required
 @ensure_csrf_cookie
 def test_problem(request, action=''):
     '''page showing summary of tests for this problem'''
 
-    #check that the problem exists
-    problem_location = request.GET['location']
+    # location can be specified by post or get
+    try:
+        problem_location = request.GET['location']
+    except:
+        problem_location = request.POST['location']
+
     location = Location(problem_location)
 
     # check that logged in user has permissions to this item
@@ -79,16 +98,16 @@ def delete_test(request):
     """
 
     # get the problem id from the get data
-    id_to_delete = request.GET['id_to_delete']
+    id_to_delete = request.POST['id_to_delete']
 
     #attempt to fetch element from database
-    test = ContentTest.objects.get(pk=id_to_delete)
+    test = secure_fetch(request.user, id_to_delete)
 
     # delete the test
     test.delete()
 
     # go back to the main test_problem page
-    problem_location = request.GET['location']
+    problem_location = request.POST['location']
     return HttpResponseRedirect('/test_problem/?location='+problem_location)
 
 
@@ -103,11 +122,7 @@ def edit_test(request):
     # if we are editing an already existing test, we will have an ID
     id_to_edit = request.GET.get('id_to_edit', '')
     if id_to_edit:
-
-        # fetch from database and authenticate
-        test = ContentTest.objects.get(pk=id_to_edit)
-        if not has_access(request.user, Location(test.problem_location)):
-            raise PermissionDenied
+        test = secure_fetch(request.user, id_to_edit)
     else:
         test = ContentTest(problem_location=location)
 
@@ -143,11 +158,7 @@ def save_test(request):
             should_be=should_be)
     else:
         # Fetch from database
-        test = ContentTest.objects.get(pk=test_id)
-
-        #ensure user owns this test
-        if not has_access(request.user, Location(test.problem_location)):
-            raise PermissionDenied
+        test = secure_fetch(request.user, test_id)
 
         # update attributes
         test.should_be = should_be

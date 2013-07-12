@@ -4,6 +4,7 @@ from capa.tests.response_xml_factory import CustomResponseXMLFactory
 from content_testing.models import ContentTest
 from textwrap import dedent
 
+
 class TestProblemViewTest (CourseTestCase):
     """
     Tests for the views involved in the automated content testing
@@ -46,7 +47,6 @@ class TestProblemViewTest (CourseTestCase):
         #sigh
         self.input_id_base = self.problem.id.replace('://', '-').replace('/', '-')
 
-
     def create_model(self):
         """
         helper method to add a content test to the database and return the pk
@@ -54,7 +54,7 @@ class TestProblemViewTest (CourseTestCase):
 
         # saved responses for making tests
         self.response_dict_correct = {
-            self.input_id_base + '_2_1': '5'
+            self.input_id_base + '_2_1': '174440041'
         }
 
         self.response_dict_incorrect = {
@@ -68,7 +68,6 @@ class TestProblemViewTest (CourseTestCase):
         )
 
         return pass_correct.pk
-
 
     def check_no_models(self, response):
         """
@@ -155,3 +154,36 @@ class TestProblemViewTest (CourseTestCase):
         # check that the test was in fact edited
         model = ContentTest.objects.get(pk=model_id)
         self.assertEqual(model.should_be, 'Incorrect')
+
+    def test_delete_test(self):
+        """
+        test that the delete view works
+        """
+
+        model_id = self.create_model()
+
+        req_data = {
+            'id_to_delete': model_id,
+            'location': str(self.problem.location)
+        }
+
+        url = '/test_problem/delete/'
+        response = self.client.post(url, req_data, follow=True)
+
+        self.assertRedirects(response, '/test_problem/?location='+str(self.problem.location))
+        self.check_no_models(response)
+
+    def test_edit_existing(self):
+        """
+        test that the edit page shows the current values
+        """
+
+        model_id = self.create_model()
+        get_data = {
+            'location': str(self.problem.location),
+            'id_to_edit': model_id
+        }
+        url = '/test_problem/edit/'
+        response = self.client.get(url, get_data)
+
+        assert ('174440041' in response.content)

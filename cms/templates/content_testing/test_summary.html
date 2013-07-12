@@ -5,11 +5,16 @@
 <%block name="title">Create A Problem Test</%block>
 
 <%block name='content'>
+<div class="main-wrapper">
+<div class="inner-wrapper">
+<div class="main-column">
+<h1> Testing Summary </h1><br>
 % if tests.count() > 0:
   % for test in tests.all():
     ${test.get_html_summary()}
-    <form method="get" action="/test_problem/delete/">
+    <form method="post" action="/test_problem/delete/">
         <input type="hidden" name="id_to_delete" value=${test.pk}>
+        <input type="hidden" name="csrfmiddlewaretoken" value=${csrf}>
         <input type="submit" value="Delete">
         <input type="hidden" name="location" value=${location}>
     </form>
@@ -25,10 +30,15 @@
     <input type="hidden" name="location" value=${location}>
     <input type="submit" name="submit" value="Run Tests">
 </form>
+%else:
+  <h1>No Tests</h1>
 %endif
   <form method="get" action="/test_problem/new/">
     ## <input type="hidden" name="csrfmiddlewaretoken" value=${csrf}>
     <input type="hidden" name="location" value=${location}>
     <input type="submit" name="submit" value="Create a New Test" id="create_new_button">
   </form>
+</div>
+</div>
+</div>
 </%block>
