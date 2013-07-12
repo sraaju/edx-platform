@@ -13,17 +13,23 @@ class ContentTest(models.Model):
 
     # the problem to test (location)
     # future-proof against long locations?
-    problem_location = models.CharField(max_length=100, editable=False)
+    problem_location = models.CharField(max_length=100)
 
     # what the problem should evaluate as (correct or incorrect)
     # TODO: make this a dict of correctness for each input
     should_be = models.CharField(max_length=20)
 
     # the current state of the test
-    verdict = models.NullBooleanField(editable=False)
+    verdict = models.TextField()
 
     # pickle of dictionary that is the stored input
-    response_dict = models.TextField(blank=True)
+    response_dict = models.TextField()
+
+    # messeges for verdict
+    ERROR = "ERROR"
+    PASS = "Pass"
+    FAIL = "Fail"
+    NONE = "Not Run"
 
     def __init__(self, *arg, **kwargs):
         """
@@ -60,7 +66,7 @@ class ContentTest(models.Model):
 
         # if we are changing something, reset verdict by default
         if not('dont_reset' in kwargs):
-            self.verdict = None
+            self.verdict = self.NONE
         else:
             kwargs.pop('dont_reset')
 
@@ -175,7 +181,7 @@ class ContentTest(models.Model):
 
         # if there was an error
         if not correct_map:
-            return False
+            return self.ERROR
 
         # this will all change because self.shuold_be will become a dictionary!!
         passing_all = True
@@ -184,10 +190,10 @@ class ContentTest(models.Model):
                 passing_all = False
                 break
 
-        if self.should_be.lower() == 'correct':
-            return passing_all
+        if (self.should_be.lower() == 'correct' and passing_all) or (self.should_be.lower() == 'incorrect' and not(passing_all)):
+            return self.PASS
         else:
-            return not(passing_all)
+            return self.FAIL
 
     def _create_response_dictionary(self):
         '''create dictionary to be submitted to the grading function'''

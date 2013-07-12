@@ -34,7 +34,7 @@ class ContentTestTest(ModuleStoreTestCase):
     <table>
         <tr>
             <td>
-                Inputs
+                Inputs:
             </td>
             <td>
                 Should Be:
@@ -54,7 +54,7 @@ class ContentTestTest(ModuleStoreTestCase):
                 Correct
             </td>
             <td>
-                None
+                Not Run
             </td>
         <tr>
     </table>""").strip()
@@ -196,7 +196,7 @@ class WhiteBoxTests(ContentTestTest):
 
         #make sure the test now fails
         test_model.run()
-        self.assertEqual(test_model.verdict, False)
+        self.assertEqual(test_model.verdict, self.VERDICT_FAIL)
 
 
 class BlackBoxTests(ContentTestTest):
@@ -209,7 +209,7 @@ class BlackBoxTests(ContentTestTest):
         self.pass_correct.run()
 
         # make sure it passed
-        self.assertEqual(True, self.pass_correct.verdict)
+        self.assertEqual(self.VERDICT_PASS, self.pass_correct.verdict)
 
     def test_fail_incorrect(self):
         '''test that it fails with incorrect answers'''
@@ -218,7 +218,7 @@ class BlackBoxTests(ContentTestTest):
         self.fail_incorrect.run()
 
         # make sure it failed
-        self.assertEqual(False, self.fail_incorrect.verdict)
+        self.assertEqual(self.VERDICT_FAIL, self.fail_incorrect.verdict)
 
     def test_pass_incorrect(self):
         '''test that it passes with incorrect'''
@@ -227,7 +227,7 @@ class BlackBoxTests(ContentTestTest):
         self.pass_incorrect.run()
 
         # make sure it passed
-        self.assertEqual(True, self.pass_incorrect.verdict)
+        self.assertEqual(self.VERDICT_PASS, self.pass_incorrect.verdict)
 
     def test_fail_correct(self):
         '''test that it fails with incorrect answers'''
@@ -236,7 +236,7 @@ class BlackBoxTests(ContentTestTest):
         self.fail_incorrect.run()
 
         # make sure it failed
-        self.assertEqual(False, self.fail_incorrect.verdict)
+        self.assertEqual(self.VERDICT_FAIL, self.fail_incorrect.verdict)
 
     def test_reset_verdict(self):
         '''test that changing things resets the verdict'''
@@ -251,7 +251,7 @@ class BlackBoxTests(ContentTestTest):
         test_model.save()
 
         #ensure that verdict is now null
-        self.assertEqual(None, test_model.verdict)
+        self.assertEqual(self.VERDICT_NONE, test_model.verdict)
 
     def test_change_dict(self):
         '''test that the verdict changes with the new dictionary on new run'''
@@ -265,8 +265,8 @@ class BlackBoxTests(ContentTestTest):
         # run the test
         test_model.run()
 
-        # assert that the verdict is now False
-        self.assertEqual(False, test_model.verdict)
+        # assert that the verdict is now self.VERDICT_FAIL
+        self.assertEqual(self.VERDICT_FAIL, test_model.verdict)
 
     def test_nochange_dict(self):
         """
@@ -306,4 +306,5 @@ class BlackBoxTests(ContentTestTest):
         test_model = self.fail_error
         test_model.run()
 
-        self.assertEqual(False, test_model.verdict)
+        self.assertEqual(self.VERDICT_ERROR, test_model.verdict)
+
