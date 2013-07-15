@@ -1,5 +1,5 @@
 (function() {
-  xdescribe('VideoCaptionAlpha', function() {
+  describe('VideoCaptionAlpha', function() {
     var state, videoPlayer, videoCaption, videoSpeedControl;
 
     function initialize() {
@@ -12,8 +12,6 @@
 
     beforeEach(function() {
       initialize();
-      spyOn(videoCaption, 'fetchCaption').andCallThrough();
-      spyOn($, 'ajaxWithPrefix').andCallThrough();
       window.onTouchBasedDevice = jasmine.createSpy('onTouchBasedDevice').andReturn(false);
     });
 
@@ -26,28 +24,29 @@
     describe('constructor', function() {
       describe('always', function() {
         beforeEach(function() {
+          spyOn($, 'getWithPrefix').andCallThrough();
           initialize();
         });
 
-        it('set the youtube id', function() {
-          expect(videoCaption.youtubeId).toEqual('normalSpeedYoutubeId');
-        });
-
         it('create the caption element', function() {
-          expect($('.video')).toContain('ol.subtitles');
+          expect($('.videoalpha')).toContain('ol.subtitles');
         });
 
         it('add caption control to video player', function() {
-          expect($('.video')).toContain('a.hide-subtitles');
+          expect($('.videoalpha')).toContain('a.hide-subtitles');
         });
 
         it('fetch the caption', function() {
-          expect(videoCaption.loaded).toBeTruthy();
-          expect(videoCaption.fetchCaption).toHaveBeenCalled();
-          expect($.ajaxWithPrefix).toHaveBeenCalledWith({
-            url: videoCaption.captionURL(),
-            notifyOnError: false,
-            success: jasmine.any(Function)
+          waitsFor(function () {
+            if (videoCaption.loaded === true) {
+                return true;
+            }
+
+            return false;
+          }, 'Expect captions to be loaded.', 1000);
+
+          runs(function () {
+              expect($.getWithPrefix).toHaveBeenCalledWith(videoCaption.captionURL(), jasmine.any(Function));
           });
         });
 
@@ -85,8 +84,8 @@
         });
 
         it('add a padding element to caption', function() {
-          expect($('.subtitles li:first')).toBe('.spacing');
-          expect($('.subtitles li:last')).toBe('.spacing');
+          expect($('.subtitles li:first').hasClass('spacing')).toBe(true);
+          expect($('.subtitles li:last').hasClass('spacing')).toBe(true);
         });
 
         it('bind all the caption link', function() {
@@ -127,7 +126,7 @@
         beforeEach(function() {
           $(window).trigger(jQuery.Event('mousemove'));
         });
-        
+
         it('does not set freezing timeout', function() {
           expect(videoCaption.frozen).toBeFalsy();
         });
@@ -146,17 +145,17 @@
           beforeEach(function() {
             $('.subtitles').trigger(jQuery.Event('mousemove'));
           });
-          
+
           it('reset the freezing timeout', function() {
             expect(window.clearTimeout).toHaveBeenCalledWith(100);
           });
         });
-        
+
         describe('when the mouse is scrolling', function() {
           beforeEach(function() {
             $('.subtitles').trigger(jQuery.Event('mousewheel'));
           });
-          
+
           it('reset the freezing timeout', function() {
             expect(window.clearTimeout).toHaveBeenCalledWith(100);
           });
@@ -194,13 +193,13 @@
             expect($.fn.scrollTo).toHaveBeenCalled();
           });
         });
-        
+
         describe('when the player is not playing', function() {
           beforeEach(function() {
             videoCaption.playing = false;
             $('.subtitles').trigger(jQuery.Event('mouseout'));
           });
-          
+
           it('does not scroll the caption', function() {
             expect($.fn.scrollTo).not.toHaveBeenCalled();
           });
@@ -215,11 +214,11 @@
 
       it('return a correct caption index', function() {
         expect(videoCaption.search(0)).toEqual(0);
-        expect(videoCaption.search(9999)).toEqual(0);
-        expect(videoCaption.search(10000)).toEqual(1);
-        expect(videoCaption.search(15000)).toEqual(1);
-        expect(videoCaption.search(30000)).toEqual(3);
-        expect(videoCaption.search(30001)).toEqual(3);
+        expect(videoCaption.search(3120)).toEqual(1);
+        expect(videoCaption.search(6270)).toEqual(2);
+        expect(videoCaption.search(8490)).toEqual(3);
+        expect(videoCaption.search(21620)).toEqual(4);
+        expect(videoCaption.search(24920)).toEqual(5);
       });
     });
 
@@ -256,7 +255,7 @@
         it('set rendered to true', function() {
           expect(videoCaption.rendered).toBeTruthy();
         });
-        
+
         it('set playing to true', function() {
           expect(videoCaption.playing).toBeTruthy();
         });
@@ -287,18 +286,18 @@
         });
 
         it('search the caption based on time', function() {
-          expect(this.caption.currentIndex).toEqual(2);
+          expect(videoCaption.currentIndex).toEqual(5);
         });
       });
 
       describe('when the video speed is not 1.0x', function() {
         beforeEach(function() {
           videoSpeedControl.currentSpeed = '0.75';
-          videoSpeedControl.updatePlayTime(25.000);
+          videoCaption.updatePlayTime(25.000);
         });
 
         it('search the caption based on 1.0x speed', function() {
-          expect(videoCaption.currentIndex).toEqual(1);
+          expect(videoCaption.currentIndex).toEqual(5);
         });
       });
 
@@ -318,7 +317,7 @@
         });
 
         it('save new index', function() {
-          expect(videoCaption.currentIndex).toEqual(2);
+          expect(videoCaption.currentIndex).toEqual(5);
         });
 
         it('scroll caption to new position', function() {
@@ -332,7 +331,7 @@
           $('.subtitles li[data-index=1]').addClass('current');
           videoCaption.updatePlayTime(15.000);
         });
-        
+
         it('does not change current subtitle', function() {
           expect($('.subtitles li[data-index=1]')).toHaveClass('current');
         });
@@ -374,12 +373,12 @@
           $('.subtitles li[data-index=1]').addClass('current');
           videoCaption.scrollCaption();
         });
-        
+
         it('does not scroll the caption', function() {
           expect($.fn.scrollTo).not.toHaveBeenCalled();
         });
       });
-      
+
       describe('when not frozen', function() {
         beforeEach(function() {
           videoCaption.frozen = false;
@@ -389,7 +388,7 @@
           beforeEach(function() {
             videoCaption.scrollCaption();
           });
-          
+
           it('does not scroll the caption', function() {
             expect($.fn.scrollTo).not.toHaveBeenCalled();
           });
@@ -426,12 +425,12 @@
           videoSpeedControl.currentSpeed = '1.0';
           $('.subtitles li[data-start="30000"]').trigger('click');
         });
-        
+
         it('trigger seek event with the correct time', function() {
           expect(videoPlayer.currentTime).toEqual(30.000);
         });
       });
-      
+
       describe('when the video speed is not 1.0x', function() {
         beforeEach(function() {
           videoSpeedControl.currentSpeed = '0.75';
@@ -443,7 +442,7 @@
         });
       });
     });
-    
+
     describe('toggle', function() {
       beforeEach(function() {
         initialize();
@@ -462,12 +461,12 @@
             currentTime: videoPlayer.currentTime
           });
         });
-        
+
         it('hide the caption', function() {
           expect(videoCaption.el).toHaveClass('closed');
         });
       });
-      
+
       describe('when the caption is hidden', function() {
         beforeEach(function() {
           videoCaption.el.addClass('closed');

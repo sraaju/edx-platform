@@ -293,6 +293,12 @@ jasmine.JQuery.matchersClass = {};
 
     // tests the existence of a specific event binding + handler
     toHandleWith: function(eventName, eventHandler) {
+
+      console.log('this = ', this);
+      console.log('this.actual = ', this.actual);
+      console.log('this.actual.data("events") = ', this.actual.data("events"));
+      console.log('this.actual.data("events")[eventName] = ', this.actual.data("events")[eventName]);
+
       var stack = this.actual.data("events")[eventName]
       for (var i = 0; i < stack.length; i++) {
         if (stack[i].handler == eventHandler) return true
@@ -315,8 +321,8 @@ jasmine.JQuery.matchersClass = {};
           || jasmine.isDomNode(this.actual))) {
             this.actual = $(this.actual)
             var result = jQueryMatchers[methodName].apply(this, arguments)
-            var element;      	
-            if (this.actual.get && (element = this.actual.get()[0]) && !$.isWindow(element) && element.tagName !== "HTML") 
+            var element;
+            if (this.actual.get && (element = this.actual.get()[0]) && !$.isWindow(element) && element.tagName !== "HTML")
               this.actual = jasmine.JQuery.elementToString(this.actual)
             return result
           }
