@@ -59,13 +59,15 @@
         var controllerClass = controllerClasses.split(' ')[0];
         var controlledFieldContents = '#' + controllerClass;
         var controlledField = '#' + controllerClass.split('-')[0];
-        $(controlledField).html('<option value="">--</option>').prop('disabled', 'disabled').siblings('.controlled').hide().children('input').val('');
+        $(controlledField).html('<option value="">--</option>').siblings('.controlled').hide().children('input').val('');
+        $(controlledField).parent().hide();
         
         var controllerClass2 = '#' + controllerClasses.split(' ')[1];
-        $(controllerClass2).html('<option value="">--</option>').prop('disabled', 'disabled').siblings('.controlled').hide().children('input').val('');
+        $(controllerClass2).html('<option value="">--</option>').siblings('.controlled').hide().children('input').val('');
+        $(controllerClass2).parent().hide();
         
         if ($(controlledFieldContents).html() != null) {
-          $(controlledField).html($(controlledFieldContents).html()).prop('disabled', false);
+          $(controlledField).html($(controlledFieldContents).html()).parent().show();
         }
       });
 
@@ -298,9 +300,9 @@
           ##   Specialty Select Field
           #####################################################
           
-          <li class="field required">
+          <li class="field required" style="display: none;">
             <label for="specialty">Specialty</label>
-            <select id="specialty" name="specialty" disabled class="controller select-controller">
+            <select id="specialty" name="specialty" class="controller select-controller">
               <option value="">--</option>
             </select>
             
@@ -336,9 +338,9 @@
           ##   Sub Specialty Select Field
           #####################################################
         
-        <li class="field required">
+        <li class="field required" style="display: none;">
           <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty" disabled class="controller">
+          <select id="sub_specialty" name="sub_specialty" class="controller">
             <option value="">--</option>
           </select>
           
