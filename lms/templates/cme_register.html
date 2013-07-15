@@ -47,10 +47,20 @@
       });
       
       $('select.controller').change(function() {
-        if ($(this).children("option:selected").hasClass('controller-show')) {
+        if ($(this).children("option:selected").val() === 'Other') {
           $(this).siblings('.controlled').slideDown('fast');
         } else {
           $(this).siblings('.controlled').slideUp('fast');
+        }
+      });
+      
+      $('select.select-controller').change(function() {
+        var controllerClass = $(this).children("option:selected").attr('class');
+        var controlledFieldContents = '#' + controllerClass;
+        var controlledField = '#' + controllerClass.split('-')[0];
+        $(controlledField).html('<option value="">--</option>').prop('disabled', 'disabled').siblings('.controlled').hide();
+        if ($(controlledFieldContents).html() != null) {
+          $(controlledField).html($(controlledFieldContents).html()).prop('disabled', false);
         }
       });
 
@@ -246,7 +256,7 @@
                 <select class="controller" id="how_stanford_affiliated" name="how_stanford_affiliated">
                   <option value="">--</option>
                   % for code, how_stanford_affiliated in CmeUserProfile.HOW_STANFORD_AFFILIATED_CHOICES:
-                    % if code == "Other":
+                    % if code == "Other, please enter:":
                       <option value="${code}" class="controller-show">${how_stanford_affiliated}</option>
                     % else:
                       <option value="${code}" class="controller-hide">${how_stanford_affiliated}</option>
@@ -262,55 +272,143 @@
          </li>
 
        </ol>
-      </fieldset> 
+      </fieldset>
 
       <fieldset class="group group-form group-form-secondary group-form-patientinformation">
        <hr />
-       <h3><strong>Patient Information</strong></h3>
+       <h3><strong>Your Patient Information</strong></h3>
        
        <ol class="list-input">
         <li class="field required" id="patient_population">
           <label for="patient_population">Patient population</label>
-          <select id="patient_population" name="patient_population">
+          <select id="patient_population" name="patient_population" class="select-controller">
             <option value="">--</option>
             %for code, patient_population in patient_population_choices:
-              <option value="${code}">${patient_population}</option>
+              <option value="${code}" class="specialty-${code}">${patient_population}</option>
             %endfor
           </select>
         </li>
+        
+          #####################################################
+          ## Specialty Select Field
+          #####################################################
           
-        <li class="field required" id="specialty">
-          <label for="specialty">Specialty</label>
-          <select id="specialty" name="specialty">
+          <li class="field required">
+            <label for="specialty">Specialty</label>
+            <select id="specialty" name="specialty" disabled class="controller select-controller">
+              <option value="">--</option>
+            </select>
+            
+            <div class="field controlled" id="specialty_free_container" style="display: none;">
+              <br />
+              <input id="specialty_free" type="text" name="specialty_free" title="Please enter your Specialty here." />
+           </div>
+          </li>
+          
+          <div id="specialty-Adult" class="specialty-container">
             <option value="">--</option>
             %for code, specialty in specialty_choices['Adult']:
-              <option value="${code}">${specialty}</option>
+              <option value="${code}" class="sub_specialty-${code}">${specialty}</option>
             %endfor
-          </select>
-        </li>
-
-         <li class="field select" id="specialty_free">
-            <label for="specialty_free">Specialty</label>
-            <input id="specialty_free" type="text" name="specialty_free" />
-         </li>        
-        
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
+          </div>
+          
+          <div id="specialty-Pediatric" class="specialty-container">
             <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Cardiology']:
-              <option value="${code}">${sub_specialty}</option>
+            %for code, specialty in specialty_choices['Pediatric']:
+              <option value="${code}" class="sub_specialty-${code}">${specialty}</option>
             %endfor
+          </div>
+          
+          <div id="specialty-Both" class="specialty-container">
+            <option value="">--</option>
+            %for code, specialty in specialty_choices['Both']:
+              <option value="${code}" class="sub_specialty-${code}">${specialty}</option>
+            %endfor
+          </div>
+        
+        
+          #####################################################
+          ## Sub Specialty Select Field
+          #####################################################
+        
+        <li class="field required">
+          <label for="sub_specialty">Sub-Specialty</label>
+          <select id="sub_specialty" name="sub_specialty" disabled class="controller">
+            <option value="">--</option>
           </select>
+          
+          <div class="field controlled" id="sub_specialty_free_container" style="display: none;">
+           <br />
+           <input id="sub_specialty_free" type="text" name="sub_specialty_free" title="Please enter your Sub-Specialty here." />
+          </div>
         </li>
-
-        <li class="field select" id="sub_specialty_free">
-           <label for="sub_specialty_free">Sub-Specialty</label>
-           <input id="sub_specialty_free" type="text" name="sub_specialty_free" />
-        </li>      
-
+        
+        <div id="sub_specialty-Cardiology" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Cardiology']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
+        
+        <div id="sub_specialty-Internal_Medicine" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Internal_Medicine']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
+        
+        <div id="sub_specialty-Obstetrics_Gynecology" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Obstetrics_Gynecology']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
+        
+        <div id="sub_specialty-Oncology" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Oncology']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
+        
+        <div id="sub_specialty-Palliative_Care" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Palliative_Care']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
+        
+        <div id="sub_specialty-Pediatrics" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Pediatrics']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
+        
+        <div id="sub_specialty-Pulmonology" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Pulmonology']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
+        
+        <div id="sub_specialty-Surgery" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Surgery']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
+        
+        <div id="sub_specialty-Transplant" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Transplant']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
+        
        </ol>
-      </fieldset> 
+      </fieldset>
+        
 
       <fieldset class="group group-form group-form-secondary group-form-personalinformation">
         <hr />
@@ -322,17 +420,17 @@
          <li class="field required" id="address_1">
            <label for="address_1">Address 1</label>
            <input id="address_1" type="text" name="address_1" />
-         </li>     
+         </li>
         
          <li class="field select" id="address_2">
            <label for="address_2">Address 2</label>
            <input id="address_2" type="text" name="address_2" />
-         </li>     
+         </li>
         
          <li class="field required" id="city">
            <label for="city">City</label>
            <input id="city" type="text" name="city" />
-         </li>    
+         </li>
         
          <li class="field required" id="state_province">
            <label for="state_province">State/Province</label>
@@ -379,7 +477,7 @@
            <select class="controller" id="hear_about_us" name="hear_about_us">
              <option value="">--</option>
              %for code, about_us in CmeUserProfile.HEAR_ABOUT_US_CHOICES:
-                % if code == "Other":
+                % if code == "Other, please enter:":
                   <option value="${code}" class="controller-show">${about_us}</option>
                 % else:
                   <option value="${code}" class="controller-hide">${about_us}</option>
@@ -461,7 +559,7 @@
     % endif
 
     ## TODO: Use a %block tag or something to allow themes to
-    ##       override in a more generalizable fashion.
+    ## override in a more generalizable fashion.
     % if not self.stanford_theme_enabled():
       <div class="cta cta-welcome">
         <h3>Welcome to ${settings.PLATFORM_NAME}</h3>
@@ -472,9 +570,9 @@
     <div class="cta cta-nextsteps">
       <h3>Next Steps</h3>
       % if self.stanford_theme_enabled():
-        <p>You will receive an activation email.  You must click on the activation link to complete the process.  Don’t see the email?  Check your spam folder and mark emails from class.stanford.edu as ‘not spam’, since you'll want to be able to receive email from your courses.</p>
+        <p>You will receive an activation email. You must click on the activation link to complete the process. Don’t see the email? Check your spam folder and mark emails from class.stanford.edu as ‘not spam’, since you'll want to be able to receive email from your courses.</p>
       % else:
-      <p>As part of joining ${settings.PLATFORM_NAME}, you will receive an activation email.  You must click on the activation link to complete the process.  Don’t see the email?  Check your spam folder and mark ${settings.PLATFORM_NAME} emails as ‘not spam’.  At ${settings.PLATFORM_NAME}, we communicate mostly through email.</p>
+      <p>As part of joining ${settings.PLATFORM_NAME}, you will receive an activation email. You must click on the activation link to complete the process. Don’t see the email? Check your spam folder and mark ${settings.PLATFORM_NAME} emails as ‘not spam’. At ${settings.PLATFORM_NAME}, we communicate mostly through email.</p>
       % endif
     </div>
 

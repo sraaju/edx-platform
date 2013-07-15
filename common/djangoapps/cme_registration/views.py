@@ -34,7 +34,7 @@ def register_user(request, extra_context={}):
 
     PATIENT_POPULATION_CHOICES = (('Adult', 'Adult'),
                                   ('Pediatric', 'Pediatric'),
-                                  ('Both (Adult/Pediatric)', 'Both (Adult/Pediatric)'))
+                                  ('Both', 'Both (Adult/Pediatric)'))
     SPECIALTY_CHOICES['Adult'] = (('Addiction_Medicine', 'Addiction Medicine'),
                                   ('Allergy', 'Allergy'),
                                   ('Anesthesiology', 'Anesthesiology'),
@@ -121,7 +121,7 @@ def register_user(request, extra_context={}):
                                       ('Urology', 'Urology'),
                                       ('Other', 'Other, please enter:'))
 
-    SPECIALTY_CHOICES['Both (Adult/Pediatric)'] = (('Addiction_Medicine', 'Addiction Medicine'),
+    SPECIALTY_CHOICES['Both'] = (('Addiction_Medicine', 'Addiction Medicine'),
                                                    ('Adolescent_Medicine', 'Adolescent Medicine'),
                                                    ('Allergy', 'Allergy'),
                                                    ('Anesthesiology', 'Anesthesiology'),
@@ -177,7 +177,7 @@ def register_user(request, extra_context={}):
                                            ('Vascular', 'Vascular'),
                                            ('Other', 'Other, please enter:'))
 
-    SUB_SPECIALTY_CHOICES['Internal Medicine'] = (('Cardiology', 'Cardiology'),
+    SUB_SPECIALTY_CHOICES['Internal_Medicine'] = (('Cardiology', 'Cardiology'),
                                                   ('Dermatology', 'Dermatology'),
                                                   ('Endocrinology_Gerontology_&_Metabolism', 'Endocrinology, Gerontology & Metabolism'),
                                                   ('Gastroenterology_&_Hepatology', 'Gastroenterology & Hepatology'),
@@ -189,7 +189,7 @@ def register_user(request, extra_context={}):
                                                   ('Pulmonary', 'Pulmonary'),
                                                   ('Other', 'Other, please enter:'))
 
-    SUB_SPECIALTY_CHOICES['Obstetrics & Gynecology'] = (('Gynecology', 'Gynecology'),
+    SUB_SPECIALTY_CHOICES['Obstetrics_Gynecology'] = (('Gynecology', 'Gynecology'),
                                                         ('Obstetrics', 'Obstetrics'),
                                                         ('Maternal_&_Fetal_Medicine', 'Maternal & Fetal Medicine'),
                                                         ('Women_Health', 'Women\'s Health'),
@@ -205,7 +205,7 @@ def register_user(request, extra_context={}):
                                          ('Urology', 'Urology'),
                                          ('Other', 'Other, please enter:'))
 
-    SUB_SPECIALTY_CHOICES['Palliative Care'] = (('Hospice', 'Hospice'),
+    SUB_SPECIALTY_CHOICES['Palliative_Care'] = (('Hospice', 'Hospice'),
                                                 ('Other', 'Other, please enter:'))
 
     SUB_SPECIALTY_CHOICES['Pediatrics'] = (('Adolescent_Medicine', 'Adolescent Medicine'),
