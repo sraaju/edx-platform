@@ -75,8 +75,8 @@ class ContentTest(models.Model):
         if hasattr(self, 'response_dict'):
             #if it isn't pickled, pickle it.
             if not(isinstance(self.response_dict, basestring)):
-                # pickle it regardless
                 self.response_dict = pickle.dumps(self.response_dict)
+
                 # if it is new, update children
                 if self.response_dict != self._old_response_dict:
                     self._update_dictionary(pickle.loads(self.response_dict))
