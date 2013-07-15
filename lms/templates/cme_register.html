@@ -47,10 +47,20 @@
       });
       
       $('select.controller').change(function() {
-        if ($(this).children("option:selected").hasClass('controller-show')) {
+        if ($(this).children("option:selected").val() === 'Other') {
           $(this).siblings('.controlled').slideDown('fast');
         } else {
           $(this).siblings('.controlled').slideUp('fast');
+        }
+      });
+      
+      $('select.select-controller').change(function() {
+        var controllerClass = $(this).children("option:selected").attr('class');
+        var controlledFieldContents = '#' + controllerClass;
+        var controlledField = '#' + controllerClass.split('-')[0];
+        $(controlledField).html('<option value="">--</option>').prop('disabled', 'disabled').siblings('.controlled').hide();
+        if ($(controlledFieldContents).html() != null) {
+          $(controlledField).html($(controlledFieldContents).html()).prop('disabled', false);
         }
       });
 
@@ -266,148 +276,135 @@
 
       <fieldset class="group group-form group-form-secondary group-form-patientinformation">
        <hr />
-       <h3><strong>Patient Information</strong></h3>
+       <h3><strong>Your Patient Information</strong></h3>
        
        <ol class="list-input">
         <li class="field required" id="patient_population">
           <label for="patient_population">Patient population</label>
-          <select id="patient_population" name="patient_population">
+          <select id="patient_population" name="patient_population" class="select-controller">
             <option value="">--</option>
             %for code, patient_population in patient_population_choices:
-              <option value="${code}">${patient_population}</option>
+              <option value="${code}" class="specialty-${code}">${patient_population}</option>
             %endfor
           </select>
         </li>
+        
+          #####################################################
+          ##   Specialty Select Field
+          #####################################################
           
-        <li class="field required" id="specialty">
-          <label for="specialty">Specialty</label>
-          <select id="specialty" name="specialty">
+          <li class="field required">
+            <label for="specialty">Specialty</label>
+            <select id="specialty" name="specialty" disabled class="controller select-controller">
+              <option value="">--</option>
+            </select>
+            
+            <div class="field controlled" id="specialty_free_container" style="display: none;">
+              <br />
+              <input id="specialty_free" type="text" name="specialty_free" title="Please enter your Specialty here." />
+           </div>
+          </li>
+          
+          <div id="specialty-Adult" class="specialty-container">
             <option value="">--</option>
             %for code, specialty in specialty_choices['Adult']:
-              <option value="${code}">${specialty}</option>
+              <option value="${code}" class="sub_specialty-${code}">${specialty}</option>
             %endfor
-          </select>
-        </li>
-        
-        <li class="field required" id="specialty">
-          <label for="specialty">Specialty</label>
-          <select id="specialty" name="specialty">
+          </div>
+          
+          <div id="specialty-Pediatric" class="specialty-container">
             <option value="">--</option>
             %for code, specialty in specialty_choices['Pediatric']:
-              <option value="${code}">${specialty}</option>
+              <option value="${code}" class="sub_specialty-${code}">${specialty}</option>
             %endfor
-          </select>
-        </li>        
-        
-        <li class="field required" id="specialty">
-          <label for="specialty">Specialty</label>
-          <select id="specialty" name="specialty">
+          </div>
+          
+          <div id="specialty-Both" class="specialty-container">
             <option value="">--</option>
-            %for code, specialty in specialty_choices['Both (Adult/Pediatric)']:
-              <option value="${code}">${specialty}</option>
+            %for code, specialty in specialty_choices['Both']:
+              <option value="${code}" class="sub_specialty-${code}">${specialty}</option>
             %endfor
-          </select>
-        </li>
+          </div>    
         
-         <li class="field select" id="specialty_free">
-            <label for="specialty_free">Specialty</label>
-            <input id="specialty_free" type="text" name="specialty_free" />
-         </li>        
         
-        <li class="field required" id="sub_specialty">
+          #####################################################
+          ##   Sub Specialty Select Field
+          #####################################################
+        
+        <li class="field required">
           <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
+          <select id="sub_specialty" name="sub_specialty" disabled class="controller">
             <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Cardiology']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
           </select>
+          
+          <div class="field controlled" id="sub_specialty_free_container" style="display: none;">
+           <br />
+           <input id="sub_specialty_free" type="text" name="sub_specialty_free" title="Please enter your Sub-Specialty here." />
+          </div> 
         </li>
         
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Internal Medicine']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
+        <div id="sub_specialty-Cardiology" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Cardiology']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
         
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Obstetrics & Gynecology']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
+        <div id="sub_specialty-Internal_Medicine" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Internal_Medicine']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
         
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Oncology']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
+        <div id="sub_specialty-Obstetrics_Gynecology" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Obstetrics_Gynecology']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
         
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Palliative Care']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
+        <div id="sub_specialty-Oncology" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Oncology']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
         
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Pediatrics']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
+        <div id="sub_specialty-Palliative_Care" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Palliative_Care']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
         
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Pulmonology']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
+        <div id="sub_specialty-Pediatrics" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Pediatrics']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
         
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Surgery']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
+        <div id="sub_specialty-Pulmonology" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Pulmonology']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
         
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Transplant']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
+        <div id="sub_specialty-Surgery" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Surgery']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>
         
-        <li class="field select" id="sub_specialty_free">
-           <label for="sub_specialty_free">Sub-Specialty</label>
-           <input id="sub_specialty_free" type="text" name="sub_specialty_free" />
-        </li>      
+        <div id="sub_specialty-Transplant" class="sub_specialty-container">
+          <option value="">--</option>
+          %for code, sub_specialty in sub_specialty_choices['Transplant']:
+            <option value="${code}">${sub_specialty}</option>
+          %endfor
+        </div>  
         
        </ol>
       </fieldset> 
