@@ -143,6 +143,11 @@ class ContentTestTest(ModuleStoreTestCase):
             response_dict=self.response_dict_error
         )
 
+        self.pass_error = ContentTest.objects.create(
+            problem_location=self.problem.location,
+            should_be="ERROR",
+            response_dict=self.response_dict_error)
+
 
 class WhiteBoxTests(ContentTestTest):
     '''test that inner methods are working'''
@@ -238,6 +243,27 @@ class BlackBoxTests(ContentTestTest):
         # make sure it failed
         self.assertEqual(self.VERDICT_FAIL, self.fail_incorrect.verdict)
 
+    def test_pass_error(self):
+        """
+        test that we get a pass when it expects and gets an error
+        """
+
+        # run the testcae
+        self.pass_error.run()
+
+        # make sure it passed
+        self.assertEqual(self.VERDICT_PASS, self.pass_error.verdict)
+
+    def test_fail_error(self):
+        """
+        Test that a badly formatted dictionary results in error
+        """
+
+        test_model = self.fail_error
+        test_model.run()
+
+        self.assertEqual(self.VERDICT_ERROR, test_model.verdict)
+
     def test_reset_verdict(self):
         '''test that changing things resets the verdict'''
 
@@ -297,14 +323,4 @@ class BlackBoxTests(ContentTestTest):
         html = self.pass_correct.get_html_form()
 
         self.assertEqual(html, self.HTML_FORM)
-
-    def test_bad_dictionary(self):
-        """
-        Test that a badly formatted dictionary results in error
-        """
-
-        test_model = self.fail_error
-        test_model.run()
-
-        self.assertEqual(self.VERDICT_ERROR, test_model.verdict)
 

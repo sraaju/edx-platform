@@ -8,6 +8,7 @@ class CMS.Views.ModuleEdit extends Backbone.View
     "click .component-editor .save-button": 'clickSaveButton'
     "click .component-actions .edit-button": 'clickEditButton'
     "click .component-actions .delete-button": 'onDelete'
+    "click .component-actions .test-button": 'clickTestButton'
     "click .mode a": 'clickModeButton'
 
   initialize: ->
@@ -143,3 +144,7 @@ class CMS.Views.ModuleEdit extends Backbone.View
     editorModeButtonParent.removeClass('active-mode')
     @$el.find('.wrapper-comp-settings').addClass('is-active')
     @$el.find('#settings-mode').find("a").addClass('is-set')
+
+  clickTestButton: (event) ->
+    if not confirm 'Are you sure you want to delete this component? This action cannot be undone.'
+      return

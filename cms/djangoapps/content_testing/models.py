@@ -147,14 +147,22 @@ class ContentTest(models.Model):
         # add correctness boxes
         context = {
             "check_correct": "checked=\"True\"",
-            "check_incorrect": ""
+            "check_incorrect": "",
+            "check_error": ""
         }
 
         if hasattr(self, 'should_be'):
             if self.should_be.lower() == "incorrect":
                 context = {
                     "check_correct": "",
-                    "check_incorrect": "checked=\"True\""
+                    "check_incorrect": "checked=\"True\"",
+                    "check_error": ""
+                }
+            elif self.should_be.lower() == "error":
+                context = {
+                    "check_correct": "",
+                    "check_incorrect": "",
+                    "check_error": "checked=\"True\""
                 }
 
         buttons = render_to_string('content_testing/form_bottom.html', context)
@@ -177,10 +185,16 @@ class ContentTest(models.Model):
             return None
 
     def _make_verdict(self, correct_map):
-        '''compare what the result of the grading should be with the actual grading'''
+        """
+        compare what the result of the grading should be with the actual grading
+        and return the verdict
+        """
 
         # if there was an error
-        if not correct_map:
+        if correct_map is None:
+            # if we want error, return pass
+            if self.should_be == self.ERROR:
+                return self.PASS
             return self.ERROR
 
         # this will all change because self.shuold_be will become a dictionary!!

@@ -779,7 +779,8 @@ hr.divide {
 }
 
 .edit-button.standard,
-.delete-button.standard {
+.delete-button.standard,
+.test-button.standard {
   @extend .t-action4;
   @include white-button;
   float: left;
