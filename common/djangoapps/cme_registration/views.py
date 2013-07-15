@@ -381,6 +381,26 @@ def cme_create_account(request, post_override=None):
             js['field'] = a
             return HttpResponse(json.dumps(js))
 
+    if post_vars.get('how_stanford_affiliated') == 'Other' and len(post_vars.get('how_stanford_affiliated_free')) < 2:
+        js['value'] = 'Enter how you are affiliated with Stanford.'
+        js['field'] = 'stanford_affiliated'
+        return HttpResponse(json.dumps(js))
+
+    if post_vars.get('specialty') == 'Other' and len(post_vars.get('specialty_free')) < 2:
+        js['value'] = 'Enter your specialty.'
+        js['field'] = 'specialty'
+        return HttpResponse(json.dumps(js))
+
+    if post_vars.get('sub_specialty') == 'Other' and len(post_vars.get('sub_specialty_free')) < 2:
+        js['value'] = 'Enter your sub-specialty.'
+        js['field'] = 'sub_specialty'
+        return HttpResponse(json.dumps(js))
+
+    if post_vars.get('hear_about_us') == 'Other' and len(post_vars.get('hear_about_us_free')) < 2:
+        js['value'] = 'Enter how you heard about us.'
+        js['field'] = 'hear_about_us'
+        return HttpResponse(json.dumps(js))
+
     try:
         validate_email(post_vars['email'])
     except ValidationError:
