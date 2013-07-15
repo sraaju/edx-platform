@@ -310,9 +310,6 @@ def cme_create_account(request, post_override=None):
         post_vars.update(dict(email=email, name=name, password=password))
         log.info('In create_account with external_auth: post_vars = %s' % post_vars)
 
-    print "***********"
-    print post_vars
-
     # Confirm we have a properly formed request
     for a in ['username', 'email', 'password', 'name']:
         if a not in post_vars:
@@ -349,16 +346,16 @@ def cme_create_account(request, post_override=None):
     # TODO: Check password is sane
 
     required_post_vars = ['username', 'email', 'name', 'password', 'terms_of_service',
-                          'honor_code', 'profession', 'license_number', 'patient_population', 'specialty',
-                          'sub_specialty', 'address_1', 'city', 'state_province', 'postal_code',
-                          'country', 'phone_number', 'hear_about_us'
-                          ]
+                          'honor_code', 'profession', 'license_number', 'patient_population', 'specialty']
+    
     if tos_not_required:
         required_post_vars = ['username', 'email', 'name', 'password',
-                              'honor_code', 'profession', 'license_number', 'patient_population', 'specialty',
-                              'sub_specialty', 'address_1', 'city', 'state_province', 'postal_code',
-                              'country', 'phone_number', 'hear_about_us'
-                              ]
+                              'honor_code', 'profession', 'license_number', 'patient_population', 'specialty']
+        
+    if 'sub_specialty' in post_vars:
+        required_post_vars += ['sub_specialty']
+
+    required_post_vars += ['address_1', 'city', 'state_province', 'postal_code', 'country', 'phone_number', 'hear_about_us']
 
     for a in required_post_vars:
         if len(post_vars[a]) < 2:

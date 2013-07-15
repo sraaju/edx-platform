@@ -246,7 +246,7 @@
                 <select class="controller" id="how_stanford_affiliated" name="how_stanford_affiliated">
                   <option value="">--</option>
                   % for code, how_stanford_affiliated in CmeUserProfile.HOW_STANFORD_AFFILIATED_CHOICES:
-                    % if code == "Other, please enter:":
+                    % if code == "Other":
                       <option value="${code}" class="controller-show">${how_stanford_affiliated}</option>
                     % else:
                       <option value="${code}" class="controller-hide">${how_stanford_affiliated}</option>
@@ -288,27 +288,7 @@
             %endfor
           </select>
         </li>
-        
-        <li class="field required" id="specialty">
-          <label for="specialty">Specialty</label>
-          <select id="specialty" name="specialty">
-            <option value="">--</option>
-            %for code, specialty in specialty_choices['Pediatric']:
-              <option value="${code}">${specialty}</option>
-            %endfor
-          </select>
-        </li>        
-        
-        <li class="field required" id="specialty">
-          <label for="specialty">Specialty</label>
-          <select id="specialty" name="specialty">
-            <option value="">--</option>
-            %for code, specialty in specialty_choices['Both (Adult/Pediatric)']:
-              <option value="${code}">${specialty}</option>
-            %endfor
-          </select>
-        </li>
-        
+
          <li class="field select" id="specialty_free">
             <label for="specialty_free">Specialty</label>
             <input id="specialty_free" type="text" name="specialty_free" />
@@ -323,95 +303,14 @@
             %endfor
           </select>
         </li>
-        
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Internal Medicine']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
-        
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Obstetrics & Gynecology']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
-        
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Oncology']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
-        
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Palliative Care']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
-        
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Pediatrics']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
-        
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Pulmonology']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
-        
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Surgery']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
-        
-        <li class="field required" id="sub_specialty">
-          <label for="sub_specialty">Sub-Specialty</label>
-          <select id="sub_specialty" name="sub_specialty">
-            <option value="">--</option>
-            %for code, sub_specialty in sub_specialty_choices['Transplant']:
-              <option value="${code}">${sub_specialty}</option>
-            %endfor
-          </select>
-        </li>
-        
+
         <li class="field select" id="sub_specialty_free">
            <label for="sub_specialty_free">Sub-Specialty</label>
            <input id="sub_specialty_free" type="text" name="sub_specialty_free" />
         </li>      
-        
+
        </ol>
       </fieldset> 
-        
 
       <fieldset class="group group-form group-form-secondary group-form-personalinformation">
         <hr />
@@ -480,7 +379,7 @@
            <select class="controller" id="hear_about_us" name="hear_about_us">
              <option value="">--</option>
              %for code, about_us in CmeUserProfile.HEAR_ABOUT_US_CHOICES:
-                % if code == "Other, please enter:":
+                % if code == "Other":
                   <option value="${code}" class="controller-show">${about_us}</option>
                 % else:
                   <option value="${code}" class="controller-hide">${about_us}</option>
