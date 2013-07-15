@@ -55,10 +55,14 @@
       });
       
       $('select.select-controller').change(function() {
-        var controllerClass = $(this).children("option:selected").attr('class');
+        var controllerClasses = $(this).children("option:selected").attr('class');
+        var controllerClass = controllerClasses.split(' ')[0];
         var controlledFieldContents = '#' + controllerClass;
         var controlledField = '#' + controllerClass.split('-')[0];
-        $(controlledField).html('<option value="">--</option>').prop('disabled', 'disabled').siblings('.controlled').hide();
+        $(controlledField).html('<option value="">--</option>').prop('disabled', 'disabled').siblings('.controlled').hide().children('input').val('');
+        
+        var controllerClass2 = '#' + controllerClasses.split(' ')[1];
+        $(controllerClass2).html('<option value="">--</option>').prop('disabled', 'disabled').siblings('.controlled').hide().children('input').val('');
         
         if ($(controlledFieldContents).html() != null) {
           $(controlledField).html($(controlledFieldContents).html()).prop('disabled', false);
@@ -285,7 +289,7 @@
           <select id="patient_population" name="patient_population" class="select-controller">
             <option value="">--</option>
             %for code, patient_population in patient_population_choices:
-              <option value="${code}" class="specialty-${code}">${patient_population}</option>
+              <option value="${code}" class="specialty-${code} sub_specialty">${patient_population}</option>
             %endfor
           </select>
         </li>
