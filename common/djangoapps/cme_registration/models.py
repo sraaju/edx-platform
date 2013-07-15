@@ -275,7 +275,6 @@ class CmeUserProfile(UserProfile):
                        ('Norway', 'Norway'),
                        ('Not Specified', 'Not Specified'),
                        ('Oman', 'Oman'),
-                       ('Other', 'Other'),
                        ('Pakistan', 'Pakistan'),
                        ('Palau', 'Palau'),
                        ('Palestinian Territory, Occupied', 'Palestinian Territory, Occupied'),
@@ -352,7 +351,8 @@ class CmeUserProfile(UserProfile):
                        ('Western Sahara', 'Western Sahara'),
                        ('Yemen', 'Yemen'),
                        ('Zambia', 'Zambia'),
-                       ('Zimbabwe', 'Zimbabwe'))
+                       ('Zimbabwe', 'Zimbabwe'),
+                       ('Other', 'Other'))
 
     country = models.CharField(blank=True, null=True, max_length=50, choices=COUNTRY_CHOICES)
     phone_number = models.CharField(blank=True, null=True, max_length=30)
