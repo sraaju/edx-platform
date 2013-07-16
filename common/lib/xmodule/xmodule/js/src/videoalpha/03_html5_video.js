@@ -77,7 +77,9 @@ function () {
             newSpeed = parseFloat(value);
 
             if (isFinite(newSpeed)) {
-                this.video.playbackRate = value;
+                if (this.video.playbackRate !== value) {
+                    this.video.playbackRate = value;
+                }
             }
         };
 
