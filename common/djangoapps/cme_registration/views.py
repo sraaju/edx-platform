@@ -317,90 +317,35 @@ def cme_create_account(request, post_override=None):
             js['field'] = a
             return HttpResponse(json.dumps(js))
 
-    if 'stanford_affiliated' not in post_vars:
-        js['value'] = 'Select whether, or not, you are affiliated with Stanford.'
-        js['field'] = 'stanford_affiliated'
-        return HttpResponse(json.dumps(js))
-
-    if post_vars.get('honor_code', 'false') != u'true':
-        js['value'] = "To enroll, you must follow the honor code.".format(field=a)
-        js['field'] = 'honor_code'
-        return HttpResponse(json.dumps(js))
-
     # Can't have terms of service for certain SHIB users, like at Stanford
     tos_not_required = (settings.MITX_FEATURES.get("AUTH_USE_SHIB")
                         and settings.MITX_FEATURES.get('SHIB_DISABLE_TOS')
                         and DoExternalAuth
                         and ("shib" in eamap.external_domain))
 
-    if not tos_not_required:
-        if post_vars.get('terms_of_service', 'false') != u'true':
-            js['value'] = "You must accept the terms of service.".format(field=a)
-            js['field'] = 'terms_of_service'
-            return HttpResponse(json.dumps(js))
-
-    # Confirm appropriate fields are there.
-    # TODO: Check e-mail format is correct.
-    # TODO: Confirm e-mail is not from a generic domain (mailinator, etc.)? Not sure if
-    # this is a good idea
-    # TODO: Check password is sane
-
-    required_post_vars = ['username', 'email', 'name', 'password', 'terms_of_service',
-                          'honor_code', 'profession', 'license_number', 'patient_population', 'specialty']
+    required_post_vars = ['username', 'email', 'name', 'password', 'profession', 'license_number', 'patient_population', 
+                          'specialty', 'address_1', 'city', 'state_province', 'postal_code', 'country', 'phone_number', 'hear_about_us']
     
-    if tos_not_required:
-        required_post_vars = ['username', 'email', 'name', 'password',
-                              'honor_code', 'profession', 'license_number', 'patient_population', 'specialty']
-        
-    if 'sub_specialty' in post_vars:
-        required_post_vars += ['sub_specialty']
+    #Validate required felds
+    error = validate_required_fields(required_post_vars, post_vars)
+    if error != None:
+        return HttpResponse(json.dumps(error))
 
-    required_post_vars += ['address_1', 'city', 'state_province', 'postal_code', 'country', 'phone_number', 'hear_about_us']
+    #Validate required check boxes
+    error = validate_required_boxes(post_vars)
+    if error != None:
+        return HttpResponse(json.dumps(error))
 
-    for a in required_post_vars:
-        if len(post_vars[a]) < 2:
-            error_str = {'username': 'Username must be minimum of two characters long.',
-                         'email': 'A properly formatted e-mail is required.',
-                         'name': 'Your legal name must be a minimum of two characters long.',
-                         'password': 'A valid password is required.',
-                         'terms_of_service': 'Accepting Terms of Service is required.',
-                         'honor_code': 'Agreeing to the Honor Code is required.',
-                         'profession': 'Choose your profession.',
-                         'license_number': 'Enter your license number.',
-                         'patient_population': 'Choose your patient population',
-                         'specialty': 'Choose your specialty',
-                         'sub_specialty': 'Choose your sub-specialty',
-                         'address_1': 'Enter your Address 01',
-                         'city': 'Enter your city',
-                         'state_province': "Choose your state/Province",
-                         'postal_code': 'Enter your postal code',
-                         'country': 'Choose your country',
-                         'phone_number': 'Enter your phone number',
-                         'hear_about_us': 'Choose how you heard about us'}
-            js['value'] = error_str[a]
-            js['field'] = a
-            return HttpResponse(json.dumps(js))
+    #Validate required radio buttons
+    error = validate_required_radios(post_vars)
+    if error != None:
+        return HttpResponse(json.dumps(error))
 
-    if post_vars.get('how_stanford_affiliated') == 'Other' and len(post_vars.get('how_stanford_affiliated_free')) < 2:
-        js['value'] = 'Enter how you are affiliated with Stanford.'
-        js['field'] = 'stanford_affiliated'
-        return HttpResponse(json.dumps(js))
-
-    if post_vars.get('specialty') == 'Other' and len(post_vars.get('specialty_free')) < 2:
-        js['value'] = 'Enter your specialty.'
-        js['field'] = 'specialty'
-        return HttpResponse(json.dumps(js))
-
-    if post_vars.get('sub_specialty') == 'Other' and len(post_vars.get('sub_specialty_free')) < 2:
-        js['value'] = 'Enter your sub-specialty.'
-        js['field'] = 'sub_specialty'
-        return HttpResponse(json.dumps(js))
-
-    if post_vars.get('hear_about_us') == 'Other' and len(post_vars.get('hear_about_us_free')) < 2:
-        js['value'] = 'Enter how you heard about us.'
-        js['field'] = 'hear_about_us'
-        return HttpResponse(json.dumps(js))
-
+    #Validate required secondary fields
+    error = validate_required_secondaries(post_vars)
+    if error != None:
+        return HttpResponse(json.dumps(error))
+    
     try:
         validate_email(post_vars['email'])
     except ValidationError:
@@ -580,3 +525,75 @@ def _do_cme_create_account(post_vars):
     except Exception:
         log.exception("UserProfile creation failed for user {0}.".format(user.id))
     return (user, cme_user_profile, registration)
+
+def validate_required_fields(required_post_vars, post_vars):
+    
+    error = {}
+    for var in required_post_vars:
+        if len(post_vars[var]) < 2:
+            error_str = {'username': 'Username must be minimum of two characters long.',
+                         'email': 'A properly formatted e-mail is required.',
+                         'name': 'Your legal name must be a minimum of two characters long.',
+                         'password': 'A valid password is required.',
+ #                        'terms_of_service': 'Accepting Terms of Service is required.',
+ #                        'honor_code': 'Agreeing to the Honor Code is required.',
+                         'profession': 'Choose your profession.',
+                         'license_number': 'Enter your license number.',
+                         'patient_population': 'Choose your patient population',
+                         'specialty': 'Choose your specialty',
+                         'address_1': 'Enter your Address 01',
+                         'city': 'Enter your city',
+                         'state_province': "Choose your state/Province",
+                         'postal_code': 'Enter your postal code',
+                         'country': 'Choose your country',
+                         'phone_number': 'Enter your phone number',
+                         'hear_about_us': 'Choose how you heard about us'}
+            error['success'] = False
+            error['value'] = error_str[var]
+            error['field'] = var
+            return error
+        
+        
+def validate_required_boxes(post_vars):
+    
+    REQUIRED_BOXES_DICT = {'terms_of_service': ("You must accept the terms of service.", 'terms_of_service'),
+                           'honor_code': ("To enroll, you must follow the honor code.", 'honor_code'),
+                           }
+    
+    error = {}
+    for k, v in REQUIRED_BOXES_DICT.items():
+        if post_vars.get(k, 'false') != u'true':
+            error['success'] = False
+            error['value'] = v[0]
+            error['field'] = v[1]
+            return error
+ 
+def validate_required_secondaries(post_vars):
+    
+    REQUIRED_SECONDARIES_DICT = {'stanford_affiliated': ('1', 'how_stanford_affiliated', 'Choose how you are affiliated with Stanford.'),
+                                 'how_stanford_affiliated': ('Other', 'how_stanford_affiliated_free', 'Enter how you are affiliated with Stanford.'),
+                                 'specialty': ('Other', 'specialty_free','Enter your specialty.'),
+                                 'sub_specialty': ('Other', 'sub_specialty_free', 'Enter your sub-specialty.'),
+                                 'hear_about_us': ('Other', 'hear_about_us_free', 'Enter how you heard about us.')
+                                 }
+    
+    error = {}
+    for k, v in REQUIRED_SECONDARIES_DICT.items():
+        if post_vars.get(k) == v[0] and len(post_vars.get(v[1])) < 2:
+            error['success'] = False
+            error['value'] = v[2]
+            error['field'] = k
+            return error
+        
+def validate_required_radios(post_vars):
+    
+    REQUIRED_RADIOS_DICT = {'stanford_affiliated': 'Select whether, or not, you are affiliated with Stanford.'
+                           }
+    
+    error = {}
+    for k, v in REQUIRED_RADIOS_DICT.items():
+        if k not in post_vars:
+            error['success'] = False
+            error['value'] = v
+            error['field'] = k
+            return error
