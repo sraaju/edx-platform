@@ -38,15 +38,15 @@ class @Problem
   renderProgressState: () =>
     detail = @el.data('progress_detail')
     status = @el.data('progress_status')
-    progress = "(" + detail + " points)"
-    if status == "none" and detail? and detail.indexOf('/') > 0
+    progress = '(' + detail + ' points)'
+    if status == 'none' and detail? and detail.indexOf('/') > 0
         a = detail.split('/')
         possible = parseInt(a[1])
         if possible == 1
-            progress =  "(" + possible + " point possible)"
-        else 
-            progress =  "(" + possible + " points possible)" 
-    @$(".problem-progress").html(progress)
+            progress =  '(' + possible + ' point possible)'
+        else
+            progress =  '(' + possible + ' points possible)'
+    @$('.problem-progress').html(progress)
  
   updateProgress: (response) =>
     if response.progress_changed
