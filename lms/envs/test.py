@@ -200,3 +200,6 @@ PASSWORD_HASHERS = (
 
 import openid.oidutil
 openid.oidutil.log = lambda message, level=0: None
+
+# Add app for CME Registration
+INSTALLED_APPS += ('cme_registration',)

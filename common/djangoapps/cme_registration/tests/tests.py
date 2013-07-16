@@ -506,7 +506,11 @@ class TestCmeRegistration(TestCase):
         registration = Registration.objects.filter(user=user[0])
         self.assertEqual(1, len(registration))
         
+        #Check cme_user_profile was created
         cme_user_profile = CmeUserProfile.objects.filter(user=user[0],
                                                          name='Chester Tester')
+        self.assertEqual(1, len(cme_user_profile))
         
-        #self.assertEqual(1, len(cme_user_profile))
+        #Check user_profile was created
+        user_profile = UserProfile.objects.filter(user=user[0])
+        self.assertEqual(1, len(user_profile))

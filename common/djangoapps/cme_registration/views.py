@@ -332,7 +332,7 @@ def cme_create_account(request, post_override=None):
         return HttpResponse(json.dumps(error))
 
     #Validate required check boxes
-    error = validate_required_boxes(post_vars)
+    error = validate_required_boxes(post_vars, tos_not_required)
     if error != None:
         return HttpResponse(json.dumps(error))
 
@@ -554,7 +554,7 @@ def validate_required_fields(required_post_vars, post_vars):
             return error
         
         
-def validate_required_boxes(post_vars):
+def validate_required_boxes(post_vars, tos_not_required):
     
     REQUIRED_BOXES_DICT = {'terms_of_service': ("You must accept the terms of service.", 'terms_of_service'),
                            'honor_code': ("To enroll, you must follow the honor code.", 'honor_code'),
@@ -562,11 +562,12 @@ def validate_required_boxes(post_vars):
     
     error = {}
     for k, v in REQUIRED_BOXES_DICT.items():
-        if post_vars.get(k, 'false') != u'true':
-            error['success'] = False
-            error['value'] = v[0]
-            error['field'] = v[1]
-            return error
+        if not (tos_not_required and k == 'terms_of_service'):
+            if post_vars.get(k, 'false') != u'true':
+                error['success'] = False
+                error['value'] = v[0]
+                error['field'] = v[1]
+                return error
  
 def validate_required_secondaries(post_vars):
     
