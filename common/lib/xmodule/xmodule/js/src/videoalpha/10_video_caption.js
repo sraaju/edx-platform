@@ -351,15 +351,25 @@ function () {
     }
 
     function hideCaptions(hide_captions) {
+        var type;
+
         if (hide_captions) {
+            type = 'hide_transcript';
             this.captionsHidden = true;
             this.videoCaption.hideSubtitlesEl.attr('title', 'Turn on captions');
             this.el.addClass('closed');
         } else {
+            type = 'show_transcript';
             this.captionsHidden = false;
             this.videoCaption.hideSubtitlesEl.attr('title', 'Turn off captions');
             this.el.removeClass('closed');
             this.videoCaption.scrollCaption();
+        }
+
+        if (this.videoPlayer) {
+            this.videoPlayer.log(type, {
+                currentTime: this.videoPlayer.currentTime
+            });
         }
 
         $.cookie('hide_captions', hide_captions, {

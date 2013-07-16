@@ -64,6 +64,10 @@ function () {
         };
 
         Player.prototype.getDuration = function () {
+            if (isNaN(this.video.duration)) {
+                return 0;
+            }
+            
             return this.video.duration;
         };
 
