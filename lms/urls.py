@@ -22,7 +22,6 @@ urlpatterns = ('',  # nopep8
     url(r'^register$', 'student.views.register_user', name="register_user"),
 
     #CME Registration
-#    url(r'^register/cme$', include('cme_registration.urls')),
     url(r'^register/cme$', 'cme_registration.views.register_user', name='cme_register_user'),
     url(r'^cme_create_account$', 'cme_registration.views.cme_create_account', name='cme_create_account'),
 
