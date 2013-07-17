@@ -568,6 +568,71 @@ class TestCmeRegistration(TestCase):
 
     @unittest.skipUnless(not settings.MITX_FEATURES.get('DISABLE_CME_REGISTRATION_TESTS', False),
                          dedent("""Skipping Test because the url is not in CMS"""))
+    def test_db_records_with_others_created(self):
+         
+        url = reverse('cme_create_account')
+        response = self.client.post(url, {'username': 'testuser', 
+                                          'email': 'test@email.com', 
+                                          'password': '1234', 
+                                          'name': 'Chester Tester', 
+                                          'stanford_affiliated': '1',
+                                          'how_stanford_affiliated': 'Other',
+                                          'how_stanford_affiliated_free': 'Wife of the provost',
+                                          'honor_code': 'true',
+                                          'terms_of_service': 'true', 
+                                          'profession': 'profession', 
+                                          'license_number': 'license_number', 
+                                          'patient_population': 'patient_population', 
+                                          'specialty': 'Other',
+                                          'specialty_free': 'Patient care',
+                                          'sub_specialty': 'Other',
+                                          'sub_specialty_free': 'Legs and feet', 
+                                          'address_1': 'address_1', 
+                                          'city': 'city', 
+                                          'state_province': 'state_province', 
+                                          'postal_code': 'postal_code', 
+                                          'country': 'country', 
+                                          'phone_number': 'phone_number', 
+                                          'hear_about_us': 'Other',
+                                          'hear_about_us_free': 'Through the grapevine'})
+        
+        #Check page displays success
+        self.assertContains(response, '{"success": true}')
+        
+        #Check user was created
+        user = User.objects.filter(email='test@email.com')
+        self.assertEqual(1, len(user))
+        
+        #Check registration was created
+        registration = Registration.objects.filter(user=user[0])
+        self.assertEqual(1, len(registration))
+        
+        #Check cme_user_profile was created
+        cme_user_profile = CmeUserProfile.objects.filter(user=user[0],
+                                                         name='Chester Tester',
+                                                         stanford_affiliated=True,
+                                                         how_stanford_affiliated='Wife of the provost',
+                                                         profession='profession',
+                                                         license_number='license_number',
+                                                         patient_population='patient_population',
+                                                         specialty='Patient care',
+                                                         sub_specialty='Legs and feet',
+                                                         address_1='address_1',
+                                                         city='city',
+                                                         state_province='state_province',
+                                                         postal_code='postal_code',
+                                                         country='country',
+                                                         phone_number='phone_number',
+                                                         hear_about_us='Through the grapevine')
+        self.assertEqual(1, len(cme_user_profile))
+        
+        #Check user_profile was created
+        user_profile = UserProfile.objects.filter(user=user[0])
+        self.assertEqual(1, len(user_profile))
+
+
+    @unittest.skipUnless(not settings.MITX_FEATURES.get('DISABLE_CME_REGISTRATION_TESTS', False),
+                         dedent("""Skipping Test because the url is not in CMS"""))
     def test_valid_email(self):
         
         url = reverse('cme_create_account')
