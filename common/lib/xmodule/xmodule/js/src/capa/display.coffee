@@ -38,14 +38,14 @@ class @Problem
   renderProgressState: () =>
     detail = @el.data('progress_detail')
     status = @el.data('progress_status')
-    progress = '(' + detail + ' points)'
+    progress = "(#{detail} points)"
     if status == 'none' and detail? and detail.indexOf('/') > 0
         a = detail.split('/')
         possible = parseInt(a[1])
         if possible == 1
-            progress =  '(' + possible + ' point possible)'
+            progress = "(#{possible} point possible)"
         else
-            progress =  '(' + possible + ' points possible)'
+            progress = "(#{possible} points possible)"
     @$('.problem-progress').html(progress)
  
   updateProgress: (response) =>
@@ -256,7 +256,7 @@ class @Problem
     analytics.track "Problem Checked",
       problem_id: @id
       answers: @answers
-
+    
     $.postWithPrefix "#{@url}/problem_check", @answers, (response) =>
       switch response.success
         when 'incorrect', 'correct'
