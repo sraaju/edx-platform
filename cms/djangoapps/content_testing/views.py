@@ -65,9 +65,6 @@ def test_problem(request, action=''):
     except:
         return HttpResponse("Problem: " + problem_location + "  Doesn't seems to exist :(")
 
-    # get all the tests
-    tests = ContentTest.objects.filter(problem_location=problem_location)
-
     # switch between the available actions
     if action.lower() == 'delete':
         return delete_test(request)
@@ -79,9 +76,9 @@ def test_problem(request, action=''):
         return save_test(request)
 
     elif action.lower() == 'run':
-        for test in tests.all():
-            test.run()
-        return HttpResponseRedirect('/test_problem/?location='+problem_location)
+        run(location)
+
+    tests = ContentTest.objects.filter(problem_location=location)
 
     context = {
         'csrf': csrf(request)['csrf_token'],
@@ -166,3 +163,14 @@ def save_test(request):
         test.save()
 
     return HttpResponseRedirect('/test_problem/?location='+location)
+
+
+def run(location):
+    """
+    runs all tests for the given location and returns the tests
+    """
+
+    # get and run all the tests
+    tests = ContentTest.objects.filter(problem_location=location)
+    for test in tests.all():
+        test.run()

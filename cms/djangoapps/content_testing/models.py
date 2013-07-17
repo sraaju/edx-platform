@@ -95,7 +95,7 @@ class ContentTest(models.Model):
         '''run the test, and see if it passes'''
 
         # process dictionary that is the response from grading
-        grade_dict = self._evaluate(self._create_response_dictionary())
+        grade_dict = self._evaluate(self._get_response_dictionary())
 
         # compare the result with what is should be
         self.verdict = self._make_verdict(grade_dict)
@@ -129,11 +129,7 @@ class ContentTest(models.Model):
 
         # if we have a response dict, fill in the html
         if hasattr(self, 'response_dict'):
-            resp_dict = self.response_dict
-
-            # unpickle if necessary
-            if isinstance(resp_dict, basestring):
-                resp_dict = pickle.loads(resp_dict)
+            resp_dict = self._get_response_dictionary()
 
             # go through filling in the html with the stored values so the form
             # has the correct defaults
@@ -209,16 +205,31 @@ class ContentTest(models.Model):
         else:
             return self.FAIL
 
-    def _create_response_dictionary(self):
-        '''create dictionary to be submitted to the grading function'''
-        # why not just unpickle?
+    def _get_response_dictionary(self):
+        """
+        create dictionary to be submitted to the grading function
+        """
 
-        response_dict = {}
+        # assume integrity has been maintained!!
+        resp_dict = self.response_dict
+
+        # unpickle if necessary
+        if isinstance(resp_dict, basestring):
+            resp_dict = pickle.loads(resp_dict)
+        
+        return resp_dict
+
+    def _get_dict_from_children(self):
+        """
+        build the response dictionary by getting the values from the children
+        """
+
+        resp_dict = {}
         for resp_model in self.response_set.all():
             for input_model in resp_model.input_set.all():
-                response_dict[input_model.string_id] = input_model.answer
+                resp_dict[input_model.string_id] = input_model.answer
 
-        return response_dict
+        return resp_dict
 
     def _create_children(self):
         '''create child responses and input entries when created'''
