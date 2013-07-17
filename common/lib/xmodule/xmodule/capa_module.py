@@ -491,10 +491,9 @@ class CapaModule(CapaFields, XModule):
 
     def get_problem_html(self, encapsulate=True):
         """
-        Return html for the problem.  
+        Return html for the problem.
 
-        Adds check, reset, save buttons as necessary based on the problem config 
-        and state.
+        Adds check, reset, save buttons as necessary based on the problem config and state.
         """
 
         try:

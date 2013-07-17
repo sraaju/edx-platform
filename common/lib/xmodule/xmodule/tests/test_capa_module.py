@@ -1241,12 +1241,12 @@ class CapaModuleTest(unittest.TestCase):
         module = CapaFactory.create()
         module.weight = 1
         module.get_progress()
-        mock_progress.assert_called_with(0,1)
+        mock_progress.assert_called_with(0, 1)
 
         other_module = CapaFactory.create(correct=True)
         other_module.weight = 1
         other_module.get_progress()
-        mock_progress.assert_called_with(1,1)
+        mock_progress.assert_called_with(1, 1)
 
 
     @patch('xmodule.capa_module.Progress')
