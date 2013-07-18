@@ -9,6 +9,8 @@ from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
 from django.core.urlresolvers import reverse
+from django.db import IntegrityError
+from django.core.mail import send_mail
 
 from student.models import (Registration, UserProfile)
 from cme_registration.models import CmeUserProfile
@@ -293,22 +295,22 @@ def cme_create_account(request, post_override=None):
     # if doing signup for an external authorization, then get email, password, name from the eamap
     # don't use the ones from the form, since the user could have hacked those
     # unless originally we didn't get a valid email or name from the external auth
-    DoExternalAuth = 'ExternalAuthMap' in request.session
-    if DoExternalAuth:
-        eamap = request.session['ExternalAuthMap']
-        try:
-            validate_email(eamap.external_email)
-            email = eamap.external_email
-        except ValidationError:
-            email = post_vars.get('email', '')
-        if eamap.external_name.strip() == '':
-            name = post_vars.get('name', '')
-        else:
-            name = eamap.external_name
-        password = eamap.internal_password
-        post_vars = dict(post_vars.items())
-        post_vars.update(dict(email=email, name=name, password=password))
-        log.info('In create_account with external_auth: post_vars = %s' % post_vars)
+#     DoExternalAuth = 'ExternalAuthMap' in request.session
+#     if DoExternalAuth:
+#         eamap = request.session['ExternalAuthMap']
+#         try:
+#             validate_email(eamap.external_email)
+#             email = eamap.external_email
+#         except ValidationError:
+#             email = post_vars.get('email', '')
+#         if eamap.external_name.strip() == '':
+#             name = post_vars.get('name', '')
+#         else:
+#             name = eamap.external_name
+#         password = eamap.internal_password
+#         post_vars = dict(post_vars.items())
+#         post_vars.update(dict(email=email, name=name, password=password))
+#         log.info('In create_account with external_auth: post_vars = %s' % post_vars)
 
     # Confirm we have a properly formed request
     for a in ['username', 'email', 'password', 'name']:
@@ -318,10 +320,10 @@ def cme_create_account(request, post_override=None):
             return HttpResponse(json.dumps(js))
 
     # Can't have terms of service for certain SHIB users, like at Stanford
-    tos_not_required = (settings.MITX_FEATURES.get("AUTH_USE_SHIB")
-                        and settings.MITX_FEATURES.get('SHIB_DISABLE_TOS')
-                        and DoExternalAuth
-                        and ("shib" in eamap.external_domain))
+#     tos_not_required = (settings.MITX_FEATURES.get("AUTH_USE_SHIB")
+#                         and settings.MITX_FEATURES.get('SHIB_DISABLE_TOS')
+#                         and DoExternalAuth
+#                         and ("shib" in eamap.external_domain))
 
     required_post_vars = ['username', 'email', 'name', 'password', 'profession', 'license_number', 'patient_population', 
                           'specialty', 'address_1', 'city', 'state_province', 'postal_code', 'country', 'phone_number', 'hear_about_us']
@@ -332,7 +334,7 @@ def cme_create_account(request, post_override=None):
         return HttpResponse(json.dumps(error))
 
     #Validate required check boxes
-    error = validate_required_boxes(post_vars, tos_not_required)
+    error = validate_required_boxes(post_vars)
     if error != None:
         return HttpResponse(json.dumps(error))
 
@@ -396,17 +398,17 @@ def cme_create_account(request, post_override=None):
     login(request, login_user)
     request.session.set_expiry(0)
 
-    if DoExternalAuth:
-        eamap.user = login_user
-        eamap.dtsignup = datetime.datetime.now(UTC)
-        eamap.save()
-        log.info("User registered with external_auth %s" % post_vars['username'])
-        log.info('Updated ExternalAuthMap for %s to be %s' % (post_vars['username'], eamap))
-
-        if settings.MITX_FEATURES.get('BYPASS_ACTIVATION_EMAIL_FOR_EXTAUTH'):
-            log.info('bypassing activation email')
-            login_user.is_active = True
-            login_user.save()
+#     if DoExternalAuth:
+#         eamap.user = login_user
+#         eamap.dtsignup = datetime.datetime.now(UTC)
+#         eamap.save()
+#         log.info("User registered with external_auth %s" % post_vars['username'])
+#         log.info('Updated ExternalAuthMap for %s to be %s' % (post_vars['username'], eamap))
+# 
+#         if settings.MITX_FEATURES.get('BYPASS_ACTIVATION_EMAIL_FOR_EXTAUTH'):
+#             log.info('bypassing activation email')
+#             login_user.is_active = True
+#             login_user.save()
 
     try_change_enrollment(request)
 
@@ -421,20 +423,20 @@ def cme_create_account(request, post_override=None):
     # we want this cookie to be accessed via javascript
     # so httponly is set to None
 
-    if request.session.get_expire_at_browser_close():
-        max_age = None
-        expires = None
-    else:
-        max_age = request.session.get_expiry_age()
-        expires_time = time.time() + max_age
-        expires = cookie_date(expires_time)
-
-    response.set_cookie(settings.EDXMKTG_COOKIE_NAME,
-                        'true', max_age=max_age,
-                        expires=expires, domain=settings.SESSION_COOKIE_DOMAIN,
-                        path='/',
-                        secure=None,
-                        httponly=None)
+#     if request.session.get_expire_at_browser_close():
+#         max_age = None
+#         expires = None
+#     else:
+#         max_age = request.session.get_expiry_age()
+#         expires_time = time.time() + max_age
+#         expires = cookie_date(expires_time)
+# 
+#     response.set_cookie(settings.EDXMKTG_COOKIE_NAME,
+#                         'true', max_age=max_age,
+#                         expires=expires, domain=settings.SESSION_COOKIE_DOMAIN,
+#                         path='/',
+#                         secure=None,
+#                         httponly=None)
     return response
 
 
@@ -468,8 +470,6 @@ def _do_cme_create_account(post_vars):
             js['value'] = "An account with the Email '" + post_vars['email'] + "' already exists."
             js['field'] = 'email'
             return HttpResponse(json.dumps(js))
-
-        raise
 
     registration.register(user)
 
@@ -554,7 +554,7 @@ def validate_required_fields(required_post_vars, post_vars):
             return error
         
         
-def validate_required_boxes(post_vars, tos_not_required):
+def validate_required_boxes(post_vars):
     
     REQUIRED_BOXES_DICT = {'terms_of_service': ("You must accept the terms of service.", 'terms_of_service'),
                            'honor_code': ("To enroll, you must follow the honor code.", 'honor_code'),
@@ -562,12 +562,11 @@ def validate_required_boxes(post_vars, tos_not_required):
     
     error = {}
     for k, v in REQUIRED_BOXES_DICT.items():
-        if not (tos_not_required and k == 'terms_of_service'):
-            if post_vars.get(k, 'false') != u'true':
-                error['success'] = False
-                error['value'] = v[0]
-                error['field'] = v[1]
-                return error
+        if post_vars.get(k, 'false') != u'true':
+            error['success'] = False
+            error['value'] = v[0]
+            error['field'] = v[1]
+            return error
  
 def validate_required_secondaries(post_vars):
     

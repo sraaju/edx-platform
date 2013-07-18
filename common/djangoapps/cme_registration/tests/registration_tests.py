@@ -6,21 +6,37 @@ Replace this with more appropriate tests for your application.
 """
 
 import unittest
+from textwrap import dedent
+#import mock
+#from mock import patch
+from mock import Mock, patch
 
 from django.conf import settings
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
+from django.db import IntegrityError
+from django.core.mail import send_mail
+
 from student.models import Registration, UserProfile
 from cme_registration.models import CmeUserProfile
+from student.tests.factories import UserFactory
 
-from textwrap import dedent
 
 class TestCmeRegistration(TestCase):
-    
+        
+
 #     def setUp(self):
-# 
-#         self.course = CourseFactory.create()
+#           
+#         self.patcher = mock.patch('django.core.mail.send_mail', mock.Mock(side_effect=Exception()))
+#         self.patcher.start()
+   
+  
+#     def tearDown(self):
+#             
+#         self.patcher.stop()
+        
+        
 
     @unittest.skipUnless(not settings.MITX_FEATURES.get('DISABLE_CME_REGISTRATION_TESTS', False),
                          dedent("""Skipping Test because the url is not in CMS"""))
@@ -532,6 +548,7 @@ class TestCmeRegistration(TestCase):
                                           'hear_about_us': 'hear_about_us'})
         
         #Check page displays success
+        print response
         self.assertContains(response, '{"success": true}')
         
         #Check user was created
@@ -685,5 +702,157 @@ class TestCmeRegistration(TestCase):
                                           'phone_number': 'phone_number', 
                                           'hear_about_us': 'hear_about_us'})
         self.assertContains(response, '{"field": "username", "value": "Username should only consist of A-Z and 0-9, with no spaces.", "success": false}')
+
+
+    @unittest.skipUnless(not settings.MITX_FEATURES.get('DISABLE_CME_REGISTRATION_TESTS', False),
+                         dedent("""Skipping Test because the url is not in CMS"""))
+    def test_dupe_username(self):
+         
+        UserFactory.create(username="student001", email="student001@test.com")
+         
+        url = reverse('cme_create_account')
+        response = self.client.post(url, {'username': 'student001', 
+                                          'email': 'test@email.com', 
+                                          'password': '1234', 
+                                          'name': 'Chester Tester', 
+                                          'stanford_affiliated': '1',
+                                          'how_stanford_affiliated': 'j\'st affiliat\'d',
+                                          'honor_code': 'true',
+                                          'terms_of_service': 'true', 
+                                          'profession': 'profession', 
+                                          'license_number': 'license_number', 
+                                          'patient_population': 'patient_population', 
+                                          'specialty': 'specialty', 
+                                          'sub_specialty': 'sub_specialty', 
+                                          'address_1': 'address_1', 
+                                          'city': 'city', 
+                                          'state_province': 'state_province', 
+                                          'postal_code': 'postal_code', 
+                                          'country': 'country', 
+                                          'phone_number': 'phone_number', 
+                                          'hear_about_us': 'hear_about_us'})
+        #self.assertRaises(IntegrityError)
+
+
+    @unittest.skipUnless(not settings.MITX_FEATURES.get('DISABLE_CME_REGISTRATION_TESTS', False),
+                         dedent("""Skipping Test because the url is not in CMS"""))
+    def test_register_when_logged_in(self):
+         
+        user = UserFactory.create(username="student002", email="student002@test.com")
+        self.client.login(username=user.username, password='test')
+        
+        url = reverse('cme_register_user')
+        response = self.client.post(url, {})
+        self.assertRedirects(response, reverse('dashboard'), status_code=302)
+  
+  
+    @unittest.skipUnless(not settings.MITX_FEATURES.get('DISABLE_CME_REGISTRATION_TESTS', False),
+                         dedent("""Skipping Test because the url is not in CMS"""))
+    def test_register_page_loads(self):
+         
+        
+        url = reverse('cme_register_user')
+        response = self.client.post(url, {})
+        self.assertEqual(response.status_code, 200)
         
         
+    @unittest.skipUnless(not settings.MITX_FEATURES.get('DISABLE_CME_REGISTRATION_TESTS', False),
+                         dedent("""Skipping Test because the url is not in CMS"""))
+    def test_reroute_activation_email(self):
+        
+        settings.MITX_FEATURES['REROUTE_ACTIVATION_EMAIL'] = 'a@b.edu'
+        url = reverse('cme_create_account')
+        response = self.client.post(url, {'username': 'testuser', 
+                                          'email': 'test@email.com', 
+                                          'password': '1234', 
+                                          'name': 'Chester Tester', 
+                                          'stanford_affiliated': '1',
+                                          'how_stanford_affiliated': 'j\'st affiliat\'d',
+                                          'honor_code': 'true',
+                                          'terms_of_service': 'true', 
+                                          'profession': 'profession', 
+                                          'license_number': 'license_number', 
+                                          'patient_population': 'patient_population', 
+                                          'specialty': 'specialty', 
+                                          'sub_specialty': 'sub_specialty', 
+                                          'address_1': 'address_1', 
+                                          'city': 'city', 
+                                          'state_province': 'state_province', 
+                                          'postal_code': 'postal_code', 
+                                          'country': 'country', 
+                                          'phone_number': 'phone_number', 
+                                          'hear_about_us': 'hear_about_us'})
+        
+        #Check page displays success
+        self.assertContains(response, '{"success": true}')
+        
+    @patch('cme_registration.models.CmeUserProfile.save', Mock(side_effect=Exception()))
+    @unittest.skipUnless(not settings.MITX_FEATURES.get('DISABLE_CME_REGISTRATION_TESTS', False),
+                         dedent("""Skipping Test because the url is not in CMS"""))
+    def test_save_profile_exception(self):
+        
+        url = reverse('cme_create_account')
+        response = self.client.post(url, {'username': 'testuser', 
+                                          'email': 'test@email.com', 
+                                          'password': '1234', 
+                                          'name': 'Chester Tester', 
+                                          'stanford_affiliated': '1',
+                                          'how_stanford_affiliated': 'j\'st affiliat\'d',
+                                          'honor_code': 'true',
+                                          'terms_of_service': 'true', 
+                                          'profession': 'profession', 
+                                          'license_number': 'license_number', 
+                                          'patient_population': 'patient_population', 
+                                          'specialty': 'specialty', 
+                                          'sub_specialty': 'sub_specialty', 
+                                          'address_1': 'address_1', 
+                                          'city': 'city', 
+                                          'state_province': 'state_province', 
+                                          'postal_code': 'postal_code', 
+                                          'country': 'country', 
+                                          'phone_number': 'phone_number', 
+                                          'hear_about_us': 'hear_about_us'})
+        
+        cme_user_profile = CmeUserProfile.objects.filter(name='Chester Tester')
+        self.assertEqual(0, len(cme_user_profile))
+        
+    
+    @patch('django.core.mail.send_mail', Mock(side_effect=Exception()))
+    @unittest.skipUnless(not settings.MITX_FEATURES.get('DISABLE_CME_REGISTRATION_TESTS', False),
+                         dedent("""Skipping Test because the url is not in CMS"""))
+    def test_activation_email_exception(self):
+         
+#         patcher = mock.patch('django.core.mail.send_mail', Mock(side_effect=Exception()))
+#         patcher.start()
+#         patcher.stop()
+         
+        settings.MITX_FEATURES['REROUTE_ACTIVATION_EMAIL'] = 'a@b.edu'
+         
+        url = reverse('cme_create_account')
+                 
+        response = self.client.post(url, {'username': 'testuser', 
+                                          'email': 'test@email.com', 
+                                          'password': '1234', 
+                                          'name': 'Chester Tester', 
+                                          'stanford_affiliated': '1',
+                                          'how_stanford_affiliated': 'j\'st affiliat\'d',
+                                          'honor_code': 'true',
+                                          'terms_of_service': 'true', 
+                                          'profession': 'profession', 
+                                          'license_number': 'license_number', 
+                                          'patient_population': 'patient_population', 
+                                          'specialty': 'specialty', 
+                                          'sub_specialty': 'sub_specialty', 
+                                          'address_1': 'address_1', 
+                                          'city': 'city', 
+                                          'state_province': 'state_province', 
+                                          'postal_code': 'postal_code', 
+                                          'country': 'country', 
+                                          'phone_number': 'phone_number', 
+                                          'hear_about_us': 'hear_about_us'})
+    
+#         patcher.stop()
+        self.assertRaises(Exception)
+        self.assertContains(response, 'Could not send activation e-mail.')
+#         patcher.stop()
+
