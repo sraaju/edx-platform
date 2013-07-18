@@ -42,7 +42,6 @@ class StaticPreviewKeyValueStore(KeyValueStore):
         try:
             self._model_data[key.field_name] = value
         except (KeyError, InvalidScopeError):
-            # self._session[tuple(key)] = value
             pass
 
     def delete(self, key):

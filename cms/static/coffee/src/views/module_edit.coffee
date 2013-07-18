@@ -73,12 +73,12 @@ class CMS.Views.ModuleEdit extends Backbone.View
       @$el.find('.component-name').html(title)
 
       # try to load test-data
-      #$.get "/test_problem/", {
-       #   location: 'i4x:/test/123/problem/b0be451a94504a6aad56ed239bf4e70d'
-        #  },
-         # (test_data) =>
-          #  @$el.find('.component-paragraph').html(test_data)
-          #'html'
+      $.get "/test_problem/", {
+          location: 'i4x:/test/123/problem/b0be451a94504a6aad56ed239bf4e70d'
+          },
+          (test_data) =>
+            @$el.find('.component-paragraph').html(test_data)
+          'html'
 
 
   customMetadata: ->

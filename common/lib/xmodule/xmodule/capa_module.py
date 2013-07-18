@@ -165,6 +165,7 @@ class CapaModule(CapaFields, XModule):
         """
         Accepts the same arguments as xmodule.x_module:XModule.__init__
         """
+
         XModule.__init__(self, *args, **kwargs)
 
         due_date = self.due

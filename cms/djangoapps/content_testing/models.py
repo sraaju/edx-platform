@@ -49,13 +49,19 @@ class ContentTest(models.Model):
     @property
     def capa_problem(self):
         # create a preview capa problem
-        return self.capa_module.lcp
+        return self.capa_module().lcp
 
-    @property
     def capa_module(self):
         # create a preview of the capa_module
         problem_descriptor = modulestore().get_item(Location(self.problem_location))
-        return get_preview_module(0, problem_descriptor)
+        preview_module = get_preview_module(0, problem_descriptor)
+
+        # edit the module to have the correct test-student-responses
+        # and (in the future support randomization)
+        new_lcp_state = preview_module.get_state_for_lcp()
+        new_lcp_state['student_answers'] = self._get_response_dictionary()
+        preview_module.lcp = preview_module.new_lcp(new_lcp_state)
+        return preview_module
 
     def save(self, *arg, **kwargs):
         """
@@ -127,18 +133,12 @@ class ContentTest(models.Model):
         # html with the inputs blank
         html_form = self.capa_problem.get_html()
 
-        # if we have a response dict, fill in the html
-        if hasattr(self, 'response_dict'):
-            resp_dict = self._get_response_dictionary()
-
-            # go through filling in the html with the stored values so the form
-            # has the correct defaults
-            for id_string in resp_dict:
-                html_form = html_form.replace(
-                    "id=\"input_"+id_string+"\"",
-                    "id=\"input_"+id_string+"\""+" value = "+"\""+resp_dict[id_string]+"\"")
-
-            html_form = html_form.replace("value=\"\"", "")
+        # remove any forms that the html has
+        import re
+        remove_form_open = r"(<form)[^>]*>"
+        remove_form_close = r"(/form)"
+        html_form = re.sub(remove_form_open, '', html_form)
+        html_form = re.sub(remove_form_close, '', html_form)
 
         # add correctness boxes
         context = {

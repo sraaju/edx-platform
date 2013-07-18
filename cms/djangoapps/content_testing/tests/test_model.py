@@ -198,7 +198,6 @@ class WhiteBoxTests(ContentTestTest):
         self.assertEqual(test_model._get_response_dictionary(), test_model._get_dict_from_children())
 
 
-
 class BlackBoxTests(ContentTestTest):
     '''test overall behavior of the ContentTest model'''
 
