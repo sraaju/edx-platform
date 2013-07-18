@@ -7,8 +7,6 @@ Replace this with more appropriate tests for your application.
 
 import unittest
 from textwrap import dedent
-#import mock
-#from mock import patch
 from mock import Mock, patch
 
 from django.conf import settings
@@ -24,19 +22,6 @@ from student.tests.factories import UserFactory
 
 
 class TestCmeRegistration(TestCase):
-        
-
-#     def setUp(self):
-#           
-#         self.patcher = mock.patch('django.core.mail.send_mail', mock.Mock(side_effect=Exception()))
-#         self.patcher.start()
-   
-  
-#     def tearDown(self):
-#             
-#         self.patcher.stop()
-        
-        
 
     @unittest.skipUnless(not settings.MITX_FEATURES.get('DISABLE_CME_REGISTRATION_TESTS', False),
                          dedent("""Skipping Test because the url is not in CMS"""))
@@ -56,9 +41,6 @@ class TestCmeRegistration(TestCase):
                                           'email': 'test@email.com', 
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
-#                                          'stanford_affiliated': '1', 
-#                                          'honor_code': 'true',
-#                                          'terms_of_service': 'true', 
                                           'profession': ''})
         self.assertContains(response, '{"field": "profession", "value": "Choose your profession.", "success": false}')
         
@@ -72,8 +54,6 @@ class TestCmeRegistration(TestCase):
                                           'email': 'test@email.com', 
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
-      #                                    'stanford_affiliated': '1', 'honor_code': 'true',
-      #                                    'terms_of_service': 'true', 
                                           'profession': 'AA', 
                                           'license_number': ''})
         self.assertContains(response, '{"field": "license_number", "value": "Enter your license number.", "success": false}')
@@ -88,8 +68,6 @@ class TestCmeRegistration(TestCase):
                                           'email': 'test@email.com', 
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
-        #                                  'stanford_affiliated': '1', 'honor_code': 'true',
-        #                                  'terms_of_service': 'true', 
                                           'profession': 'AA', 
                                           'license_number': '123', 
                                           'patient_population': ''})
@@ -105,8 +83,6 @@ class TestCmeRegistration(TestCase):
                                           'email': 'test@email.com', 
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
-         #                                 'stanford_affiliated': '1', 'honor_code': 'true',
-         #                                 'terms_of_service': 'true', 
                                           'profession': 'AA', 
                                           'license_number': '123', 
                                           'patient_population': 'BB', 
@@ -123,8 +99,6 @@ class TestCmeRegistration(TestCase):
                                           'email': 'test@email.com', 
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
-      #                                    'stanford_affiliated': '1', 'honor_code': 'true',
-      #                                    'terms_of_service': 'true', 
                                           'profession': 'AA', 
                                           'license_number': '123', 
                                           'patient_population': 'BB', 
@@ -142,8 +116,6 @@ class TestCmeRegistration(TestCase):
                                           'email': 'test@email.com', 
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
-        #                                  'stanford_affiliated': '1', 'honor_code': 'true',
-        #                                  'terms_of_service': 'true', 
                                           'profession': 'AA', 
                                           'license_number': '123', 
                                           'patient_population': 'BB', 
@@ -162,8 +134,6 @@ class TestCmeRegistration(TestCase):
                                           'email': 'test@email.com', 
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
-         #                                 'stanford_affiliated': '1', 'honor_code': 'true',
-         #                                 'terms_of_service': 'true', 
                                           'profession': 'AA', 
                                           'license_number': '123', 
                                           'patient_population': 'BB', 
@@ -183,8 +153,6 @@ class TestCmeRegistration(TestCase):
                                           'email': 'test@email.com', 
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
-     #                                     'stanford_affiliated': '1', 'honor_code': 'true',
-     #                                     'terms_of_service': 'true', 
                                           'profession': 'AA', 
                                           'license_number': '123', 
                                           'patient_population': 'BB', 
@@ -228,8 +196,6 @@ class TestCmeRegistration(TestCase):
                                           'email': 'test@email.com', 
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
-               #                           'stanford_affiliated': '1', 'honor_code': 'true',
-               #                           'terms_of_service': 'true', 
                                           'profession': 'AA', 
                                           'license_number': '123', 
                                           'patient_population': 'BB', 
@@ -252,8 +218,6 @@ class TestCmeRegistration(TestCase):
                                           'email': 'test@email.com', 
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
-               #                           'stanford_affiliated': '1', 'honor_code': 'true',
-               #                           'terms_of_service': 'true', 
                                           'profession': 'AA', 
                                           'license_number': '123', 
                                           'patient_population': 'BB', 
@@ -277,8 +241,6 @@ class TestCmeRegistration(TestCase):
                                           'email': 'test@email.com', 
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
-                 #                         'stanford_affiliated': '1', 'honor_code': 'true',
-                 #                         'terms_of_service': 'true', 
                                           'profession': 'AA', 
                                           'license_number': '123', 
                                           'patient_population': 'BB', 
@@ -387,7 +349,6 @@ class TestCmeRegistration(TestCase):
                                           'email': 'test@email.com', 
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
- #                                         'stanford_affiliated': '0',
                                           'honor_code': 'true',
                                           'terms_of_service': 'true', 
                                           'profession': 'profession', 
@@ -416,7 +377,6 @@ class TestCmeRegistration(TestCase):
                                           'password': '1234', 
                                           'name': 'Chester Tester', 
                                           'stanford_affiliated': '0',
- #                                         'honor_code': 'true',
                                           'terms_of_service': 'true', 
                                           'profession': 'profession', 
                                           'license_number': 'license_number', 
@@ -445,7 +405,6 @@ class TestCmeRegistration(TestCase):
                                           'name': 'Chester Tester', 
                                           'stanford_affiliated': '0',
                                           'honor_code': 'true',
- #                                         'terms_of_service': 'true', 
                                           'profession': 'profession', 
                                           'license_number': 'license_number', 
                                           'patient_population': 'patient_population', 
@@ -548,7 +507,6 @@ class TestCmeRegistration(TestCase):
                                           'hear_about_us': 'hear_about_us'})
         
         #Check page displays success
-        print response
         self.assertContains(response, '{"success": true}')
         
         #Check user was created
@@ -817,16 +775,11 @@ class TestCmeRegistration(TestCase):
         self.assertEqual(0, len(cme_user_profile))
         
     
-    @patch('django.core.mail.send_mail', Mock(side_effect=Exception()))
+    @patch('django.contrib.auth.models.User.email_user', Mock(side_effect=Exception()))
     @unittest.skipUnless(not settings.MITX_FEATURES.get('DISABLE_CME_REGISTRATION_TESTS', False),
                          dedent("""Skipping Test because the url is not in CMS"""))
     def test_activation_email_exception(self):
          
-#         patcher = mock.patch('django.core.mail.send_mail', Mock(side_effect=Exception()))
-#         patcher.start()
-#         patcher.stop()
-         
-        settings.MITX_FEATURES['REROUTE_ACTIVATION_EMAIL'] = 'a@b.edu'
          
         url = reverse('cme_create_account')
                  
@@ -850,9 +803,7 @@ class TestCmeRegistration(TestCase):
                                           'country': 'country', 
                                           'phone_number': 'phone_number', 
                                           'hear_about_us': 'hear_about_us'})
-    
-#         patcher.stop()
         self.assertRaises(Exception)
         self.assertContains(response, 'Could not send activation e-mail.')
-#         patcher.stop()
+
 
