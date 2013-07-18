@@ -47,7 +47,7 @@ class @Problem
         else
             progress = "(#{possible} points possible)"
     @$('.problem-progress').html(progress)
- 
+
   updateProgress: (response) =>
     if response.progress_changed
         @el.data('progress_status', response.progress_status)
