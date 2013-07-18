@@ -125,7 +125,10 @@ class VideoDescriptor(VideoFields,
             url identifiers
         """
         video = super(VideoDescriptor, cls).from_xml(xml_data, system, org, course)
-        _parse_video_xml(video, xml_data)
+
+        definition_xml, location, xml_object, filepath = cls.from_xml_parser(xml_data, system, org, course)
+
+        _parse_video_xml(video, etree.tostring(definition_xml))
         return video
 
     def definition_to_xml(self, resource_fs):

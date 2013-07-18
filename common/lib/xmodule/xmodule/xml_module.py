@@ -295,16 +295,10 @@ class XmlDescriptor(XModuleDescriptor):
             metadata[cls._translate(attr)] = attr_map.from_xml(policy[attr])
 
     @classmethod
-    def from_xml(cls, xml_data, system, org=None, course=None):
+    def from_xml_parser(cls, xml_data, system, org=None, course=None):
         """
-        Creates an instance of this descriptor from the supplied xml_data.
-        This may be overridden by subclasses
-
-        xml_data: A string of xml that will be translated into data and children for
-            this module
-        system: A DescriptorSystem for interacting with external resources
-        org and course are optional strings that will be used in the generated modules
-            url identifiers
+        Take a xml_data string and see if it is a "pointer" to another file on disk
+        if so, then load that file from disk
         """
         xml_object = etree.fromstring(xml_data)
         # VS[compat] -- just have the url_name lookup, once translation is done
@@ -319,6 +313,23 @@ class XmlDescriptor(XModuleDescriptor):
             definition_xml = cls.load_file(filepath, system.resources_fs, location)
         else:
             definition_xml = xml_object  # this is just a pointer, not the real definition content
+            filepath = None
+
+        return definition_xml, location, xml_object, filepath
+
+    @classmethod
+    def from_xml(cls, xml_data, system, org=None, course=None):
+        """
+        Creates an instance of this descriptor from the supplied xml_data.
+        This may be overridden by subclasses
+
+        xml_data: A string of xml that will be translated into data and children for
+            this module
+        system: A DescriptorSystem for interacting with external resources
+        org and course are optional strings that will be used in the generated modules
+            url identifiers
+        """
+        definition_xml, location, xml_object, filepath = cls.from_xml_parser(xml_data, system, org, course)
 
         definition, children = cls.load_definition(definition_xml, system, location)  # note this removes metadata
 
